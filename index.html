@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AGBS Office Portal</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="login-screen" class="login-shell">
+      <section class="login-hero" aria-label="Amazing Grace Biblical Seminary">
+        <img src="assets/campus.jpg" alt="Amazing Grace Biblical Seminary campus" />
+        <div class="login-overlay">
+          <img class="login-logo" src="assets/logo.jpg" alt="AGBS logo" />
+          <p>Amazing Grace Biblical Seminary</p>
+          <h1>Private Seminary Office Portal</h1>
+          <span>Making Disciples to Make Disciples</span>
+        </div>
+      </section>
+      <section class="login-panel" aria-label="Office login">
+        <div>
+          <p class="eyebrow">Office access</p>
+          <h2>Sign in</h2>
+          <p class="muted">For admission, register, graduation, and alumni records.</p>
+        </div>
+        <form id="login-form" class="stack">
+          <label>
+            Username
+            <input id="username" autocomplete="username" value="superadmin" required />
+          </label>
+          <label>
+            Password
+            <input id="password" autocomplete="current-password" type="password" value="agbs2026" required />
+          </label>
+          <button class="primary" type="submit">Sign in</button>
+          <p id="login-error" class="error" role="alert"></p>
+        </form>
+        <div class="login-note">
+          <strong>Demo credentials:</strong> superadmin / agbs2026. Replace with cloud authentication before public deployment.
+        </div>
+      </section>
+    </div>
+
+    <div id="app" class="app hidden">
+      <aside class="sidebar">
+        <div class="brand">
+          <img src="assets/logo.jpg" alt="AGBS logo" />
+          <div>
+            <strong>AGBS</strong>
+            <span>Office Portal</span>
+          </div>
+        </div>
+        <nav id="nav" aria-label="Portal sections"></nav>
+        <button id="logout" class="ghost">Sign out</button>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p id="section-kicker" class="eyebrow">Dashboard</p>
+            <h1 id="section-title">Office Dashboard</h1>
+          </div>
+          <div class="top-actions">
+            <button id="backup-button" class="secondary">Backup JSON</button>
+            <button id="print-button" class="secondary">Print</button>
+          </div>
+        </header>
+
+        <section id="view" class="view"></section>
+      </main>
+    </div>
+
+    <dialog id="profile-dialog" class="profile-dialog">
+      <form method="dialog" class="dialog-close">
+        <button aria-label="Close profile">Close</button>
+      </form>
+      <div id="profile-content"></div>
+    </dialog>
+
+    <script src="data/students.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
