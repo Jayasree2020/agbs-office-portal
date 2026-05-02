@@ -12,6 +12,7 @@ const PROGRAMS = [
     code: "BTH",
     duration: "3 Years",
     languages: "English / Malayalam",
+    departments: ["Bilingual (Malayalam And English)", "English"],
     authority: "ATA Candidacy",
     admission: "10+2 qualification or 10+ Diploma in Theology from an accredited seminary.",
     focus: "Biblical studies, church history, theology, ethics, pastoral care, and practical ministry.",
@@ -20,8 +21,9 @@ const PROGRAMS = [
   {
     name: "Master of Divinity",
     code: "MDIV",
-    duration: "2-3 Years",
+    duration: "3 Years",
     languages: "English",
+    departments: ["General"],
     authority: "ATA Candidacy",
     admission: "BTh with minimum B grade or a three-year university graduate degree.",
     focus: "Biblical interpretation, pastoral counselling, homiletics, church administration, and missions.",
@@ -32,9 +34,10 @@ const PROGRAMS = [
     code: "MTH",
     duration: "2 Years",
     languages: "English",
+    departments: ["New Testament", "History Of Christianity", "Pastoral Care And Counseling", "Missiology"],
     authority: "ATA process",
     admission: "B.D. or M.Div. from an accredited seminary with minimum B grade.",
-    focus: "New Testament, Pastoral Care & Counseling, Missiology, and History of Christianity.",
+    focus: "New Testament, Pastoral Care And Counseling, Missiology, And History Of Christianity.",
     monthlyFee: "Rs. 4,000/-",
   },
   {
@@ -42,6 +45,7 @@ const PROGRAMS = [
     code: "DIPBS",
     duration: "1 Year",
     languages: "English / Malayalam",
+    departments: ["Biblical Studies"],
     authority: "College Program",
     admission: "Foundational biblical studies admission through seminary office review.",
     focus: "Foundational biblical knowledge and practical ministry preparation.",
@@ -52,6 +56,7 @@ const PROGRAMS = [
     code: "DWM",
     duration: "1 Year",
     languages: "English / Malayalam",
+    departments: ["Worship And Music"],
     authority: "Senate of Serampore Affiliated",
     admission: "Application and interview through the seminary office.",
     focus: "Worship leadership, music training, performance, and ministry formation.",
@@ -116,6 +121,7 @@ const NAV_ITEMS = [
 
 let state = null;
 let currentView = "dashboard";
+let selectedDashboardProgram = "";
 let filters = { search: "", program: "All", status: "All", batch: "All", language: "All" };
 
 const loginScreen = document.getElementById("login-screen");
@@ -314,21 +320,24 @@ function renderDashboard() {
     <section class="hero-band">
       <div>
         <p class="eyebrow">Private office records</p>
-        <h2>Admission to graduation, with alumni history in one searchable place.</h2>
-        <p>Seeded from the 2026 register document and enriched with Student Handbook rules for admissions, attendance, fees, examinations, and conduct.</p>
+        <h2>Admission To Graduation, With Alumni History In One Searchable Place.</h2>
+        <p>Seeded From The 2026 Register Document And Enriched With Student Handbook Rules For Admissions, Attendance, Fees, Examinations, And Conduct.</p>
       </div>
       <img src="assets/campus.jpg" alt="AGBS campus" />
     </section>
     <section class="grid stats">
-      ${statCard(stats.total, "Total records")}
-      ${statCard(stats.active, "Active students")}
+      ${statCard(stats.total, "Total Records")}
+      ${statCard(stats.active, "Active Students")}
       ${statCard(stats.graduated, "Graduated")}
       ${statCard(stats.alumni, "Alumni")}
     </section>
     <section class="grid two-col" style="margin-top:16px">
       <div class="card">
         <h3>Program Register Summary</h3>
-        ${summaryTable(groupBy(state.students, "program"))}
+        ${summaryTable()}
+        <div id="program-student-list" class="program-student-list">
+          ${selectedDashboardProgram ? programStudentList(selectedDashboardProgram) : `<p class="muted">Click Any Program Link To View Students By 1st Year, 2nd Year, And 3rd Year.</p>`}
+        </div>
       </div>
       <div class="card">
         <h3>Office Priorities</h3>
@@ -340,6 +349,8 @@ function renderDashboard() {
       </div>
     </section>
   `;
+  bindDashboardProgramLinks();
+  bindProgramStudentListActions();
 }
 
 function renderStudents() {
@@ -396,14 +407,15 @@ function renderPrograms() {
       ${PROGRAMS.map((program) => `
         <article class="card">
           <p class="eyebrow">${program.code} / ${program.duration}</p>
-          <h3>${program.name}</h3>
+          <h3>${toTitleCase(program.name)}</h3>
           <p class="muted">${program.authority}</p>
           <div class="detail-list">
             <div><span>Records</span><strong>${counts[program.name] || 0}</strong></div>
             <div><span>Language</span><strong>${program.languages}</strong></div>
             <div><span>Monthly fee</span><strong>${program.monthlyFee}</strong></div>
-            <div><span>Focus</span><strong>${program.focus}</strong></div>
+            <div><span>Departments</span><strong>${program.departments.join(", ")}</strong></div>
           </div>
+          <p><strong>Focus:</strong> ${program.focus}</p>
           <p><strong>Admission:</strong> ${program.admission}</p>
         </article>
       `).join("")}
@@ -604,9 +616,9 @@ function studentTable(students, graduationActions = false) {
       <tbody>
         ${students.map((student) => `
           <tr>
-            <td><strong>${escapeHtml(student.name)}</strong><br><span class="muted">${escapeHtml(student.language || "")}</span></td>
+          <td><strong>${escapeHtml(toTitleCase(student.name))}</strong><br><span class="muted">${escapeHtml(student.language || "")}</span></td>
             <td>${escapeHtml(student.registerNumber)}</td>
-            <td>${escapeHtml(student.program)}${student.specialization ? `<br><span class="muted">${escapeHtml(student.specialization)}</span>` : ""}</td>
+            <td>${escapeHtml(toTitleCase(student.program))}${student.specialization ? `<br><span class="muted">${escapeHtml(toTitleCase(student.specialization))}</span>` : ""}</td>
             <td>${student.batchStart || ""}-${student.batchEnd || ""}</td>
             <td>${statusBadge(student.status)}</td>
             <td>${student.graduationYear || "Pending"}</td>
@@ -644,12 +656,12 @@ function openProfile(id) {
     <div class="stack">
       <div>
         <p class="eyebrow">Student profile</p>
-        <h2>${escapeHtml(student.name)}</h2>
+        <h2>${escapeHtml(toTitleCase(student.name))}</h2>
         <p class="muted">${escapeHtml(student.registerNumber)}</p>
       </div>
       <div class="detail-list">
-        <div><span>Program</span><strong>${escapeHtml(student.program)}</strong></div>
-        <div><span>Specialization</span><strong>${escapeHtml(student.specialization || "Not applicable")}</strong></div>
+        <div><span>Program</span><strong>${escapeHtml(toTitleCase(student.program))}</strong></div>
+        <div><span>Specialization</span><strong>${escapeHtml(student.specialization ? toTitleCase(student.specialization) : "Not Applicable")}</strong></div>
         <div><span>Batch</span><strong>${student.batchStart || ""}-${student.batchEnd || ""}</strong></div>
         <div><span>Status</span><strong>${student.status}</strong></div>
         <div><span>Graduation year</span><strong>${student.graduationYear || "Pending"}</strong></div>
@@ -773,14 +785,126 @@ function statCard(value, label) {
   return `<div class="card stat"><strong>${value}</strong><span>${label}</span></div>`;
 }
 
-function summaryTable(groups) {
-  const rows = Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
+function summaryTable() {
+  const groups = groupBy(state.students, "program");
+  const rows = PROGRAMS.map((program) => [program, groups[program.name] || 0]).filter(([, count]) => count > 0);
   return `
     <table>
-      <thead><tr><th>Program</th><th>Records</th></tr></thead>
-      <tbody>${rows.map(([name, count]) => `<tr><td>${escapeHtml(name)}</td><td>${count}</td></tr>`).join("")}</tbody>
+      <thead><tr><th>Program</th><th>Duration</th><th>Departments</th><th>Records</th><th>List</th></tr></thead>
+      <tbody>${rows.map(([program, count]) => `
+        <tr>
+          <td>${escapeHtml(toTitleCase(program.name))}</td>
+          <td>${escapeHtml(program.duration)}</td>
+          <td>${escapeHtml(program.departments.join(", "))}</td>
+          <td>${count}</td>
+          <td><button class="link-button" data-summary-program="${escapeHtml(program.name)}">View Students</button></td>
+        </tr>
+      `).join("")}</tbody>
     </table>
   `;
+}
+
+function bindDashboardProgramLinks() {
+  document.querySelectorAll("[data-summary-program]").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedDashboardProgram = button.dataset.summaryProgram;
+      const target = document.getElementById("program-student-list");
+      target.innerHTML = programStudentList(selectedDashboardProgram);
+      target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      bindProgramStudentListActions();
+    });
+  });
+}
+
+function bindProgramStudentListActions() {
+  bindStudentRows();
+  document.querySelectorAll("[data-open-program]").forEach((button) => {
+    button.addEventListener("click", () => {
+      filters = { ...filters, search: "", program: button.dataset.openProgram, status: "All", batch: "All", language: "All" };
+      route("students");
+    });
+  });
+}
+
+function programStudentList(programName) {
+  const students = state.students
+    .filter((student) => student.program === programName)
+    .sort((a, b) => (getStudyYear(a).order - getStudyYear(b).order) || a.name.localeCompare(b.name));
+  const yearGroups = groupStudentsByStudyYear(students);
+  return `
+    <section class="year-register">
+      <div class="year-register-header">
+        <div>
+          <p class="eyebrow">Student List</p>
+          <h3>${escapeHtml(toTitleCase(programName))} Students By Year</h3>
+        </div>
+        <button class="secondary" data-open-program="${escapeHtml(programName)}">Open In Students Page</button>
+      </div>
+      ${yearGroups.map((group) => `
+        <article class="year-group">
+          <h4>${escapeHtml(group.label)} <span>${group.students.length}</span></h4>
+          <div class="year-student-grid">
+            ${group.students.map((student) => `
+              <button class="student-link" data-student="${student.id}">
+                <strong>${escapeHtml(toTitleCase(student.name))}</strong>
+                <span>${escapeHtml(student.registerNumber)}</span>
+                <em>${escapeHtml(getDepartment(student))}</em>
+              </button>
+            `).join("")}
+          </div>
+        </article>
+      `).join("")}
+    </section>
+  `;
+}
+
+function groupStudentsByStudyYear(students) {
+  const map = new Map();
+  students.forEach((student) => {
+    const year = getStudyYear(student);
+    if (!map.has(year.label)) map.set(year.label, { ...year, students: [] });
+    map.get(year.label).students.push(student);
+  });
+  return [...map.values()].sort((a, b) => a.order - b.order);
+}
+
+function getStudyYear(student) {
+  if (["Graduated", "Alumni", "Archived", "Withdrawn"].includes(student.status)) {
+    return { label: student.graduationYear ? `Graduated ${student.graduationYear}` : "Graduated", order: 90 };
+  }
+  const duration = getProgramDurationYears(student.program);
+  const currentYear = new Date().getFullYear();
+  const yearNumber = Math.max(1, Math.min(duration, currentYear - Number(student.batchStart || currentYear) + 1));
+  return { label: ordinal(yearNumber), order: yearNumber };
+}
+
+function getProgramDurationYears(programName) {
+  const duration = PROGRAMS.find((program) => program.name === programName)?.duration || "1 Year";
+  const match = duration.match(/\d+/);
+  return match ? Number(match[0]) : 1;
+}
+
+function ordinal(value) {
+  if (value === 1) return "1st Year";
+  if (value === 2) return "2nd Year";
+  if (value === 3) return "3rd Year";
+  return `${value}th Year`;
+}
+
+function getDepartment(student) {
+  if (student.program === "Bachelor of Theology") {
+    return student.language === "English" ? "English" : "Bilingual (Malayalam And English)";
+  }
+  if (student.program === "Master of Theology") {
+    return normalizeDepartment(student.specialization || "Department Pending");
+  }
+  if (student.program === "Diploma in Biblical Studies") return "Biblical Studies";
+  if (student.program === "Diploma in Worship and Music") return "Worship And Music";
+  return "General";
+}
+
+function normalizeDepartment(value) {
+  return toTitleCase(String(value || "").replace(/&/g, "And"));
 }
 
 function groupBy(items, key) {
@@ -795,12 +919,16 @@ function unique(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
+function toTitleCase(value) {
+  return String(value || "").replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1));
+}
+
 function selectHtml(id, options, selected) {
-  return `<select id="${id}">${options.map((option) => `<option ${option === selected ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}</select>`;
+  return `<select id="${id}">${options.map((option) => `<option value="${escapeHtml(option)}" ${option === selected ? "selected" : ""}>${escapeHtml(option === "All" ? option : toTitleCase(option))}</option>`).join("")}</select>`;
 }
 
 function programSelect(name, selected) {
-  return `<select name="${name}">${PROGRAMS.map((program) => `<option ${program.name === selected ? "selected" : ""}>${program.name}</option>`).join("")}</select>`;
+  return `<select name="${name}">${PROGRAMS.map((program) => `<option value="${escapeHtml(program.name)}" ${program.name === selected ? "selected" : ""}>${escapeHtml(toTitleCase(program.name))}</option>`).join("")}</select>`;
 }
 
 function statusSelect(name, selected) {
