@@ -184,6 +184,17 @@ textarea {
   background: var(--blue);
 }
 
+.link-button,
+.student-link {
+  color: var(--blue);
+  background: transparent;
+  padding: 0;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .error {
   min-height: 20px;
   margin: 0;
@@ -517,6 +528,69 @@ tr:hover td {
   font-size: 13px;
 }
 
+.program-student-list {
+  margin-top: 18px;
+}
+
+.year-register {
+  display: grid;
+  gap: 14px;
+}
+
+.year-register-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 6px;
+}
+
+.year-group {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.year-group h4 {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 14px;
+  background: #fbf5ec;
+}
+
+.year-group h4 span {
+  color: var(--gold-dark);
+}
+
+.year-student-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+}
+
+.student-link {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  min-height: 78px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  text-decoration: none;
+  background: var(--paper);
+}
+
+.student-link span,
+.student-link em {
+  color: var(--soft-ink);
+  font-size: 12px;
+  font-style: normal;
+}
+
 @media (max-width: 980px) {
   .login-shell,
   .app,
@@ -555,6 +629,7 @@ tr:hover td {
 
   .topbar,
   .top-actions,
+  .year-register-header,
   .form-grid,
   .detail-list,
   .toolbar {
@@ -564,6 +639,10 @@ tr:hover td {
   }
 
   #nav {
+    grid-template-columns: 1fr;
+  }
+
+  .year-student-grid {
     grid-template-columns: 1fr;
   }
 }
