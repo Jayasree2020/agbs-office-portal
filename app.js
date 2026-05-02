@@ -852,7 +852,7 @@ function programStudentList(programName) {
           <p class="eyebrow">Student List</p>
           <h3>${escapeHtml(toTitleCase(programName))} Students By Year</h3>
         </div>
-        <button class="secondary" data-open-program="${escapeHtml(programName)}">Open In Students Page</button>
+        ${currentView === "students" ? "" : `<button class="secondary" data-open-program="${escapeHtml(programName)}">Open In Students Page</button>`}
       </div>
       ${yearGroups.map((group) => `
         <article class="year-group">
