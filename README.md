@@ -12,12 +12,12 @@ Private office portal prototype for Amazing Grace Biblical Seminary.
 - CSV import/export and JSON backup.
 - Program and handbook reference pages using the Student Handbook.
 
-## Demo Login
+## Office Login
 
-- Username: `superadmin`
-- Password: `agbs2026`
+- Username: `superadmin` or `office`
+- Password: use the office register password shared during setup.
 
-Change this to real hosted authentication before live office use.
+The seeded register is encrypted in the deployed files. For full production use, enable Vercel Deployment Protection and replace this static login with hosted authentication plus a private database.
 
 ## Vercel
 
@@ -28,4 +28,4 @@ This is a static web portal and can be deployed directly on Vercel from GitHub.
 Build command: none  
 Output directory: project root
 
-For production, connect a private cloud database and replace local browser storage with server-side storage.
+For production, connect a private cloud database and replace local browser storage with server-side storage. Keep the project private because it contains seminary office records.
