@@ -4,7 +4,7 @@ const DEFAULT_USERS = [
   { username: "agbsindia2020@gmail.com", name: "AGBS Office", role: "Super Admin" },
 ];
 
-const STATUSES = ["Applicant", "Admitted", "Active Student", "Graduated", "Alumni", "Withdrawn", "Archived"];
+const STATUSES = ["Applicant", "Admitted", "Active Student", "Alumni", "Withdrawn", "Archived"];
 
 const PROGRAMS = [
   {
@@ -121,7 +121,6 @@ const NAV_ITEMS = [
 
 let state = null;
 let currentView = "dashboard";
-let selectedDashboardProgram = "";
 let filters = { search: "", program: "All", status: "All", batch: "All", language: "All" };
 
 const loginScreen = document.getElementById("login-screen");
@@ -155,7 +154,9 @@ function loadSavedState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed = normalizeState(JSON.parse(saved));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      return parsed;
     } catch {
       localStorage.removeItem(STORAGE_KEY);
     }
@@ -164,7 +165,7 @@ function loadSavedState() {
 }
 
 async function loadStateFromPassword(password) {
-  const seedStudents = await decryptSeed(password);
+  const seedStudents = normalizeStudents(await decryptSeed(password));
   const saved = loadSavedState();
   if (saved) return saved;
   return {
@@ -191,6 +192,24 @@ async function loadStateFromPassword(password) {
       },
     ],
   };
+}
+
+function normalizeState(nextState) {
+  return {
+    ...nextState,
+    students: normalizeStudents(nextState.students || []),
+  };
+}
+
+function normalizeStudents(students) {
+  return students.map((student) => ({
+    ...student,
+    status: normalizeStatus(student.status),
+  }));
+}
+
+function normalizeStatus(status) {
+  return status === "Graduated" ? "Alumni" : (STATUSES.includes(status) ? status : "Admitted");
 }
 
 async function decryptSeed(password) {
@@ -328,37 +347,36 @@ function renderDashboard() {
     <section class="grid stats">
       ${statCard(stats.total, "Total Records")}
       ${statCard(stats.active, "Active Students")}
-      ${statCard(stats.graduated, "Graduated")}
       ${statCard(stats.alumni, "Alumni")}
+      ${statCard(stats.programs, "Programs")}
     </section>
     <section class="grid two-col" style="margin-top:16px">
       <div class="card">
         <h3>Program Register Summary</h3>
         ${summaryTable()}
-        <div id="program-student-list" class="program-student-list">
-          ${selectedDashboardProgram ? programStudentList(selectedDashboardProgram) : `<p class="muted">Click Any Program Link To View Students By 1st Year, 2nd Year, And 3rd Year.</p>`}
-        </div>
+        <p class="muted">Use The View Students Link To Open The Program List On The Students Page.</p>
       </div>
       <div class="card">
         <h3>Office Priorities</h3>
         <div class="notice-list">
           <div class="notice"><strong>Register numbers:</strong> Keep one unique number per enrollment.</div>
-          <div class="notice"><strong>Graduation:</strong> Move completed students to Graduated, then Alumni after office confirmation.</div>
+          <div class="notice"><strong>Graduation:</strong> Move completed students directly to Alumni after office confirmation.</div>
           <div class="notice"><strong>Backup:</strong> Use Backup JSON daily until cloud database backup is connected.</div>
         </div>
       </div>
     </section>
   `;
   bindDashboardProgramLinks();
-  bindProgramStudentListActions();
 }
 
 function renderStudents() {
   view.innerHTML = `
     ${renderToolbar()}
+    ${filters.program !== "All" ? programStudentList(filters.program) : ""}
     <div id="student-results" class="table-wrap">${studentTable(getFilteredStudents())}</div>
   `;
   bindToolbar();
+  bindProgramStudentListActions();
   bindStudentRows();
 }
 
@@ -425,12 +443,12 @@ function renderPrograms() {
 
 function renderGraduation() {
   const list = state.students
-    .filter((student) => ["Active Student", "Graduated", "Alumni"].includes(student.status))
+    .filter((student) => ["Active Student", "Alumni"].includes(student.status))
     .sort((a, b) => (a.batchEnd || 9999) - (b.batchEnd || 9999));
   view.innerHTML = `
     <section class="card">
       <h3>Graduation Tracking</h3>
-      <p class="muted">Use this page to move completed students from Active Student to Graduated and then Alumni.</p>
+      <p class="muted">Use This Page To Move Completed Students From Active Student Directly To Alumni.</p>
       <div class="table-wrap">${studentTable(list, true)}</div>
     </section>
   `;
@@ -449,11 +467,11 @@ function renderGraduation() {
 }
 
 function renderAlumni() {
-  const alumni = state.students.filter((student) => ["Alumni", "Graduated"].includes(student.status));
+  const alumni = state.students.filter((student) => student.status === "Alumni");
   view.innerHTML = `
     <section class="card">
       <h3>Alumni Register</h3>
-      <p class="muted">Graduated and alumni records for ministry follow-up and certificate reference.</p>
+      <p class="muted">All Graduates Are Listed As Alumni For Ministry Follow-Up And Certificate Reference.</p>
       <div class="table-wrap">${studentTable(alumni)}</div>
     </section>
   `;
@@ -471,7 +489,7 @@ function renderReports() {
         </div>
         <button class="primary" id="export-filtered">Export current student report CSV</button>
         <button class="secondary" id="export-active">Export active students CSV</button>
-        <button class="secondary" id="export-alumni">Export alumni and graduates CSV</button>
+        <button class="secondary" id="export-alumni">Export Alumni CSV</button>
         <button class="secondary" id="export-programs">Export program summary CSV</button>
         <div class="notice">Reports include register number, program, batch, language, status, graduation year, and notes.</div>
       </div>
@@ -486,15 +504,15 @@ function renderReports() {
       </div>
     </section>
     <section class="grid stats" style="margin-top:16px">
-      ${statCard(stats.total, "All records")}
-      ${statCard(stats.active, "Active students")}
-      ${statCard(stats.graduated, "Graduated")}
+      ${statCard(stats.total, "All Records")}
+      ${statCard(stats.active, "Active Students")}
       ${statCard(stats.alumni, "Alumni")}
+      ${statCard(stats.programs, "Programs")}
     </section>
   `;
   document.getElementById("export-filtered").addEventListener("click", () => exportCsv("agbs-student-report.csv", getFilteredStudents()));
   document.getElementById("export-active").addEventListener("click", () => exportCsv("agbs-active-students.csv", state.students.filter((s) => s.status === "Active Student")));
-  document.getElementById("export-alumni").addEventListener("click", () => exportCsv("agbs-alumni-graduates.csv", state.students.filter((s) => ["Graduated", "Alumni"].includes(s.status))));
+  document.getElementById("export-alumni").addEventListener("click", () => exportCsv("agbs-alumni-graduates.csv", state.students.filter((s) => s.status === "Alumni")));
   document.getElementById("export-programs").addEventListener("click", exportProgramSummary);
   document.getElementById("run-import").addEventListener("click", importCsv);
 }
@@ -635,10 +653,7 @@ function studentTable(students, graduationActions = false) {
 
 function graduationButtons(student) {
   if (student.status === "Active Student") {
-    return `<button class="secondary" data-mark="${student.id}" data-status="Graduated" data-year="${student.batchEnd || new Date().getFullYear()}">Mark Graduated</button>`;
-  }
-  if (student.status === "Graduated") {
-    return `<button class="secondary" data-mark="${student.id}" data-status="Alumni" data-year="${student.graduationYear || student.batchEnd || new Date().getFullYear()}">Move Alumni</button>`;
+    return `<button class="secondary" data-mark="${student.id}" data-status="Alumni" data-year="${student.batchEnd || new Date().getFullYear()}">Move To Alumni</button>`;
   }
   return "";
 }
@@ -772,8 +787,8 @@ function getStats() {
   return {
     total: state.students.length,
     active: state.students.filter((student) => ["Active Student", "Admitted"].includes(student.status)).length,
-    graduated: state.students.filter((student) => student.status === "Graduated").length,
     alumni: state.students.filter((student) => student.status === "Alumni").length,
+    programs: unique(state.students.map((student) => student.program)).length,
   };
 }
 
@@ -809,11 +824,8 @@ function summaryTable() {
 function bindDashboardProgramLinks() {
   document.querySelectorAll("[data-summary-program]").forEach((button) => {
     button.addEventListener("click", () => {
-      selectedDashboardProgram = button.dataset.summaryProgram;
-      const target = document.getElementById("program-student-list");
-      target.innerHTML = programStudentList(selectedDashboardProgram);
-      target.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      bindProgramStudentListActions();
+      filters = { ...filters, search: "", program: button.dataset.summaryProgram, status: "All", batch: "All", language: "All" };
+      route("students");
     });
   });
 }
@@ -871,8 +883,8 @@ function groupStudentsByStudyYear(students) {
 }
 
 function getStudyYear(student) {
-  if (["Graduated", "Alumni", "Archived", "Withdrawn"].includes(student.status)) {
-    return { label: student.graduationYear ? `Graduated ${student.graduationYear}` : "Graduated", order: 90 };
+  if (["Alumni", "Archived", "Withdrawn"].includes(student.status)) {
+    return { label: student.graduationYear ? `Alumni ${student.graduationYear}` : "Alumni", order: 90 };
   }
   const duration = getProgramDurationYears(student.program);
   const currentYear = new Date().getFullYear();
@@ -983,7 +995,7 @@ function importCsv() {
         batchStart: Number(row.batchStart) || null,
         batchEnd: Number(row.batchEnd) || null,
         admissionYear: Number(row.batchStart) || null,
-        status: STATUSES.includes(row.status) ? row.status : "Admitted",
+        status: normalizeStatus(row.status || "Admitted"),
         graduationYear: Number(row.graduationYear) || null,
         source: file.name,
         notes: row.notes || "",
