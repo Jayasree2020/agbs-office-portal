@@ -337,12 +337,19 @@ function renderDashboard() {
   const stats = getStats();
   view.innerHTML = `
     <section class="hero-band">
-      <div>
-        <p class="eyebrow">Private office records</p>
-        <h2>Admission To Graduation, With Alumni History In One Searchable Place.</h2>
-        <p>Seeded From The 2026 Register Document And Enriched With Student Handbook Rules For Admissions, Attendance, Fees, Examinations, And Conduct.</p>
+      <div class="hero-copy">
+        <p class="eyebrow">Private Office Records</p>
+        <h2>Admission To Graduation, With Alumni History In One Place.</h2>
+        <p>Search student records, register numbers, program lists, graduation movement, and alumni history from a single office dashboard.</p>
+        <div class="hero-points" aria-label="Portal highlights">
+          <span>2026 Register Seed</span>
+          <span>Student Handbook Rules</span>
+          <span>Admissions, Fees, Exams, Conduct</span>
+        </div>
       </div>
-      <img src="assets/campus.jpg" alt="AGBS campus" />
+      <figure class="hero-media">
+        <img src="assets/campus.jpg" alt="AGBS campus" />
+      </figure>
     </section>
     <section class="grid stats">
       ${statCard(stats.total, "Total Records")}
