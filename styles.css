@@ -385,6 +385,15 @@ table {
   min-width: 840px;
 }
 
+.compact-table table {
+  min-width: 0;
+}
+
+.compact-table th,
+.compact-table td {
+  font-size: 13px;
+}
+
 th,
 td {
   padding: 12px;
