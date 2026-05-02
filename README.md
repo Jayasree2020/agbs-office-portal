@@ -23,6 +23,8 @@ Change this to real hosted authentication before live office use.
 
 This is a static web portal and can be deployed directly on Vercel from GitHub.
 
+[Deploy / Import on Vercel](https://vercel.com/new/clone?repository-url=https://github.com/Jayasree2020/agbs-office-portal)
+
 Build command: none  
 Output directory: project root
 
