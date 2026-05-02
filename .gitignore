@@ -3,3 +3,8 @@ Thumbs.db
 *.log
 .vercel
 node_modules
+chrome-*-profile/
+agbs-*-verify/
+agbs-*-clean/
+portal-*.png
+vercel-*.png
