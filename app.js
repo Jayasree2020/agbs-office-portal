@@ -1,8 +1,8 @@
 const STORAGE_KEY = "agbs-office-portal-v1";
 const SESSION_KEY = "agbs-office-session-v1";
 const DEFAULT_USERS = [
-  { username: "superadmin", password: "agbs2026", name: "Super Admin", role: "Super Admin" },
-  { username: "office", password: "office2026", name: "Office Staff", role: "Office Staff" },
+  { username: "superadmin", name: "Super Admin", role: "Super Admin" },
+  { username: "office", name: "Office Staff", role: "Office Staff" },
 ];
 
 const STATUSES = ["Applicant", "Admitted", "Active Student", "Graduated", "Alumni", "Withdrawn", "Archived"];
@@ -115,7 +115,7 @@ const NAV_ITEMS = [
   ["settings", "Settings"],
 ];
 
-let state = loadState();
+let state = null;
 let currentView = "dashboard";
 let filters = { search: "", program: "All", status: "All", batch: "All", language: "All" };
 
@@ -138,13 +138,15 @@ init();
 function init() {
   renderNav();
   if (sessionStorage.getItem(SESSION_KEY)) {
-    showApp();
+    state = loadSavedState();
+    if (state) showApp();
+    else showLogin();
   } else {
     showLogin();
   }
 }
 
-function loadState() {
+function loadSavedState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
@@ -153,8 +155,15 @@ function loadState() {
       localStorage.removeItem(STORAGE_KEY);
     }
   }
+  return null;
+}
+
+async function loadStateFromPassword(password) {
+  const seedStudents = await decryptSeed(password);
+  const saved = loadSavedState();
+  if (saved) return saved;
   return {
-    students: (window.AGBS_STUDENTS || []).map((student) => ({
+    students: seedStudents.map((student) => ({
       ...student,
       contactPhone: "",
       email: "",
@@ -163,7 +172,7 @@ function loadState() {
       documents: [],
       updatedAt: new Date().toISOString(),
     })),
-    users: DEFAULT_USERS.map(({ password, ...user }) => user),
+    users: DEFAULT_USERS,
     auditLogs: [
       {
         at: new Date().toISOString(),
@@ -177,6 +186,38 @@ function loadState() {
       },
     ],
   };
+}
+
+async function decryptSeed(password) {
+  const seed = window.AGBS_ENCRYPTED_SEED;
+  if (!seed) throw new Error("Missing encrypted register seed.");
+  const keyMaterial = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: base64ToBytes(seed.salt),
+      iterations: seed.iterations,
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"]
+  );
+  const encrypted = concatBytes(base64ToBytes(seed.data), base64ToBytes(seed.tag));
+  const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: base64ToBytes(seed.iv) }, key, encrypted);
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+function base64ToBytes(value) {
+  return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
+}
+
+function concatBytes(left, right) {
+  const out = new Uint8Array(left.length + right.length);
+  out.set(left, 0);
+  out.set(right, left.length);
+  return out;
 }
 
 function saveState(action) {
@@ -202,12 +243,18 @@ function getSession() {
   return raw ? JSON.parse(raw) : null;
 }
 
-function handleLogin(event) {
+async function handleLogin(event) {
   event.preventDefault();
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value;
-  const match = DEFAULT_USERS.find((user) => user.username === username && user.password === password);
+  const match = DEFAULT_USERS.find((user) => user.username === username);
   if (!match) {
+    document.getElementById("login-error").textContent = "Please check the username and password.";
+    return;
+  }
+  try {
+    state = await loadStateFromPassword(password);
+  } catch {
     document.getElementById("login-error").textContent = "Please check the username and password.";
     return;
   }
@@ -483,10 +530,13 @@ function renderSettings() {
   `;
   document.getElementById("reset-demo").addEventListener("click", () => {
     if (!confirm("Reset local changes and reload the original register data?")) return;
+    const session = getSession();
     localStorage.removeItem(STORAGE_KEY);
-    state = loadState();
-    addAudit("Reset local data to original register seed");
-    route("dashboard");
+    state = null;
+    if (session) {
+      sessionStorage.removeItem(SESSION_KEY);
+    }
+    logout();
   });
 }
 
