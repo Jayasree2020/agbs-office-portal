@@ -1,0 +1,14 @@
+{
+  "name": "agbs-office-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Private office portal for Amazing Grace Biblical Seminary student, graduation, and alumni records.",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "agbs",
+    "seminary",
+    "office-portal"
+  ]
+}
