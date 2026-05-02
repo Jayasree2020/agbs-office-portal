@@ -1,8 +1,7 @@
 const STORAGE_KEY = "agbs-office-portal-v1";
 const SESSION_KEY = "agbs-office-session-v1";
 const DEFAULT_USERS = [
-  { username: "superadmin", name: "Super Admin", role: "Super Admin" },
-  { username: "office", name: "Office Staff", role: "Office Staff" },
+  { username: "agbsindia2020@gmail.com", name: "AGBS Office", role: "Super Admin" },
 ];
 
 const STATUSES = ["Applicant", "Admitted", "Active Student", "Graduated", "Alumni", "Withdrawn", "Archived"];
@@ -514,10 +513,10 @@ function renderSettings() {
         <div class="detail-list">
           <div><span>Signed in</span><strong>${session.name}</strong></div>
           <div><span>Role</span><strong>${session.role}</strong></div>
-          <div><span>Users planned</span><strong>Super Admin, Office Staff</strong></div>
+        <div><span>Office account</span><strong>agbsindia2020@gmail.com</strong></div>
           <div><span>Backup</span><strong>Daily cloud backup ready</strong></div>
         </div>
-        <div class="notice">This local version demonstrates office workflow. For live deployment, replace demo login with hosted authentication and connect the data layer to a private cloud database.</div>
+        <div class="notice">This version is connected to the office email login and encrypted register seed. For long-term live use, add hosted authentication and a private cloud database.</div>
         <button id="reset-demo" class="secondary">Reset to original register data</button>
       </div>
       <div class="card">
