@@ -14,8 +14,8 @@ Private office portal prototype for Amazing Grace Biblical Seminary.
 
 ## Office Login
 
-- Username: `superadmin` or `office`
-- Password: use the office register password shared during setup.
+- Email: `agbsindia2020@gmail.com`
+- Password: use the private office password shared during setup.
 
 The seeded register is encrypted in the deployed files. For full production use, enable Vercel Deployment Protection and replace this static login with hosted authentication plus a private database.
 
