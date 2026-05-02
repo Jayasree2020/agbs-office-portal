@@ -789,18 +789,20 @@ function summaryTable() {
   const groups = groupBy(state.students, "program");
   const rows = PROGRAMS.map((program) => [program, groups[program.name] || 0]).filter(([, count]) => count > 0);
   return `
-    <table>
-      <thead><tr><th>Program</th><th>Duration</th><th>Departments</th><th>Records</th><th>List</th></tr></thead>
-      <tbody>${rows.map(([program, count]) => `
-        <tr>
-          <td>${escapeHtml(toTitleCase(program.name))}</td>
-          <td>${escapeHtml(program.duration)}</td>
-          <td>${escapeHtml(program.departments.join(", "))}</td>
-          <td>${count}</td>
-          <td><button class="link-button" data-summary-program="${escapeHtml(program.name)}">View Students</button></td>
-        </tr>
-      `).join("")}</tbody>
-    </table>
+    <div class="table-wrap compact-table">
+      <table>
+        <thead><tr><th>Program</th><th>Duration</th><th>Departments</th><th>Records</th><th>List</th></tr></thead>
+        <tbody>${rows.map(([program, count]) => `
+          <tr>
+            <td>${escapeHtml(toTitleCase(program.name))}</td>
+            <td>${escapeHtml(program.duration)}</td>
+            <td>${escapeHtml(program.departments.join(", "))}</td>
+            <td>${count}</td>
+            <td><button class="link-button" data-summary-program="${escapeHtml(program.name)}">View Students</button></td>
+          </tr>
+        `).join("")}</tbody>
+      </table>
+    </div>
   `;
 }
 
