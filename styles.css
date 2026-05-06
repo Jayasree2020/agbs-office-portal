@@ -474,12 +474,53 @@ textarea {
   margin-bottom: 16px;
 }
 
-.grade-toolbar,
+.grade-toolbar {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(5, minmax(120px, 0.7fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
 .fee-toolbar {
   display: grid;
   grid-template-columns: 1.4fr repeat(3, minmax(140px, 0.7fr));
   gap: 10px;
   margin-bottom: 16px;
+}
+
+.import-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.import-actions,
+.button-row,
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.import-actions input {
+  max-width: 430px;
+}
+
+.table-summary {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0 0 12px;
+  color: var(--soft-ink);
+}
+
+.table-summary strong {
+  color: var(--ink);
+  font-size: 22px;
+}
+
+.small-button.danger {
+  background: var(--red);
 }
 
 .table-wrap {
@@ -785,6 +826,9 @@ tr:hover td {
   .detail-list,
   .grade-toolbar,
   .fee-toolbar,
+  .import-actions,
+  .button-row,
+  .table-actions,
   .toolbar {
     grid-template-columns: 1fr;
     flex-direction: column;
