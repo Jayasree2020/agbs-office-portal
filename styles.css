@@ -431,9 +431,49 @@ textarea {
   font-weight: 700;
 }
 
+.grade-dashboard-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr) auto;
+  gap: 16px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.mini-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(74px, 1fr));
+  gap: 10px;
+}
+
+.mini-stat-grid div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff9ef;
+}
+
+.mini-stat-grid strong {
+  font-size: 24px;
+}
+
+.mini-stat-grid span {
+  color: var(--soft-ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .toolbar {
   display: grid;
   grid-template-columns: 1.3fr repeat(4, minmax(135px, 0.7fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.grade-toolbar {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, minmax(140px, 0.7fr));
   gap: 10px;
   margin-bottom: 16px;
 }
@@ -493,7 +533,8 @@ tr:hover td {
 }
 
 .status.active-student,
-.status.admitted {
+.status.admitted,
+.status.pass {
   color: #0d5238;
   background: #dff3e8;
 }
@@ -510,9 +551,27 @@ tr:hover td {
 }
 
 .status.withdrawn,
-.status.archived {
+.status.archived,
+.status.fail {
   color: #6c241f;
   background: #f6d8d4;
+}
+
+.status.pending,
+.status.incomplete {
+  color: #714307;
+  background: #f7e5bd;
+}
+
+.empty-state {
+  display: grid;
+  gap: 6px;
+  padding: 22px;
+  color: var(--soft-ink);
+}
+
+.empty-state strong {
+  color: var(--ink);
 }
 
 .detail-list {
@@ -697,6 +756,10 @@ tr:hover td {
   .toolbar {
     grid-template-columns: 1fr 1fr;
   }
+
+  .grade-dashboard-card {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
@@ -712,6 +775,7 @@ tr:hover td {
   .year-register-header,
   .form-grid,
   .detail-list,
+  .grade-toolbar,
   .toolbar {
     grid-template-columns: 1fr;
     flex-direction: column;
@@ -749,6 +813,10 @@ tr:hover td {
   .hero-points {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .mini-stat-grid {
+    grid-template-columns: 1fr 1fr;
   }
 
   .hero-points span {
