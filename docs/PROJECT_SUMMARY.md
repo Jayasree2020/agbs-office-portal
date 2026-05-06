@@ -54,8 +54,11 @@ This document explains, point by point, what has been made so far and what each 
 - Records grades against existing student register numbers.
 - Stores subject, term, academic year, marks obtained, maximum marks, percentage, grade, result, and notes.
 - Shows grade dashboard cards for total entries, passed records, pending records, and average percentage.
-- Filters grade records by student/search text, program, result, and academic year.
-- Exports grade records as CSV for academic review or backup.
+- Imports grade tables from Word .docx, CSV, or text files.
+- Matches imported grade rows to students by register number or student name.
+- Filters grade records by student/search text, program/course, subject, semester/term, result, and academic year.
+- Lets the office edit or delete imported and manually entered grade records.
+- Exports the current filtered grade view as CSV for academic review or backup.
 
 ## Fees Dashboard
 
