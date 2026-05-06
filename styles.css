@@ -403,6 +403,7 @@ textarea {
   display: block;
   font-size: 34px;
   line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 .stat span {
@@ -431,7 +432,8 @@ textarea {
   font-weight: 700;
 }
 
-.grade-dashboard-card {
+.grade-dashboard-card,
+.fee-dashboard-card {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr) auto;
   gap: 16px;
@@ -456,6 +458,7 @@ textarea {
 
 .mini-stat-grid strong {
   font-size: 24px;
+  overflow-wrap: anywhere;
 }
 
 .mini-stat-grid span {
@@ -471,7 +474,8 @@ textarea {
   margin-bottom: 16px;
 }
 
-.grade-toolbar {
+.grade-toolbar,
+.fee-toolbar {
   display: grid;
   grid-template-columns: 1.4fr repeat(3, minmax(140px, 0.7fr));
   gap: 10px;
@@ -534,7 +538,8 @@ tr:hover td {
 
 .status.active-student,
 .status.admitted,
-.status.pass {
+.status.pass,
+.status.paid {
   color: #0d5238;
   background: #dff3e8;
 }
@@ -558,7 +563,9 @@ tr:hover td {
 }
 
 .status.pending,
-.status.incomplete {
+.status.incomplete,
+.status.partial,
+.status.waived {
   color: #714307;
   background: #f7e5bd;
 }
@@ -757,7 +764,8 @@ tr:hover td {
     grid-template-columns: 1fr 1fr;
   }
 
-  .grade-dashboard-card {
+  .grade-dashboard-card,
+  .fee-dashboard-card {
     grid-template-columns: 1fr;
   }
 }
@@ -776,6 +784,7 @@ tr:hover td {
   .form-grid,
   .detail-list,
   .grade-toolbar,
+  .fee-toolbar,
   .toolbar {
     grid-template-columns: 1fr;
     flex-direction: column;
