@@ -10,11 +10,12 @@ Repository: [Jayasree2020/agbs-office-portal](https://github.com/Jayasree2020/ag
 ## What This Project Does
 
 - **Office Login** - Protects the portal with the AGBS office email and private register password.
-- **Office Dashboard** - Shows total records, active students, alumni, and program count at a glance; each number opens the Students page with the matching records.
+- **Office Dashboard** - Shows total records, active students, alumni, program count, and grade progress at a glance; each student number opens the Students page with the matching records.
 - **Program Register Summary** - Lists B.Th, M.Div, M.Th, Dip.BS, and DWM with duration, departments, record count, and a link to the student list.
 - **Students Page** - Opens the selected program list and groups students by 1st Year, 2nd Year, 3rd Year, and Alumni year.
 - **Student Profiles** - Stores each student name, register number, program, department, batch, status, graduation year, contact fields, ministry, address, and office notes.
 - **Admissions Page** - Adds new admitted students and can generate register numbers in the AGBS format.
+- **Grades Dashboard** - Records student grades by subject, term, academic year, marks, grade, and result.
 - **Graduation Page** - Moves completed students directly to Alumni, because all graduates are alumni.
 - **Alumni Page** - Keeps alumni records together for certificate reference, ministry follow-up, and office history.
 - **Reports Page** - Exports student reports, active student lists, alumni lists, program summaries, and JSON backups.
@@ -50,6 +51,7 @@ Repository: [Jayasree2020/agbs-office-portal](https://github.com/Jayasree2020/ag
 - Student list moved away from the dashboard and shown only on the Students page when requested.
 - Dashboard Program Register Summary linked to filtered student lists.
 - Dashboard number cards now work as shortcuts to detailed student records.
+- Grades dashboard added to the main dashboard and Grades page for subject-wise marks, grade results, progress review, and CSV export.
 - GitHub repository organized with documentation and deployment notes.
 
 ## Repository Map
