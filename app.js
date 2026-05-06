@@ -6,6 +6,9 @@ const DEFAULT_USERS = [
 
 const STATUSES = ["Applicant", "Admitted", "Active Student", "Alumni", "Withdrawn", "Archived"];
 const GRADE_RESULTS = ["Pass", "Fail", "Incomplete", "Pending"];
+const FEE_STATUSES = ["Paid", "Partial", "Pending", "Waived"];
+const PAYMENT_METHODS = ["Cash", "Bank Transfer", "UPI", "Online", "Cheque", "Other"];
+const FEE_TYPES = ["Monthly Fee", "Admission Fee", "Examination Fee", "Graduation Fee", "Certificate Fee", "Other"];
 
 const PROGRAMS = [
   {
@@ -113,6 +116,7 @@ const NAV_ITEMS = [
   ["students", "Students"],
   ["admissions", "Admissions"],
   ["grades", "Grades"],
+  ["fees", "Fees"],
   ["programs", "Programs & Batches"],
   ["graduation", "Graduation"],
   ["alumni", "Alumni"],
@@ -125,6 +129,7 @@ let state = null;
 let currentView = "dashboard";
 let filters = { search: "", program: "All", status: "All", batch: "All", language: "All" };
 let gradeFilters = { search: "", program: "All", result: "All", academicYear: "All" };
+let feeFilters = { search: "", program: "All", status: "All", academicYear: "All" };
 
 const loginScreen = document.getElementById("login-screen");
 const appShell = document.getElementById("app");
@@ -183,6 +188,7 @@ async function loadStateFromPassword(password) {
     })),
     users: DEFAULT_USERS,
     grades: [],
+    feePayments: [],
     auditLogs: [
       {
         at: new Date().toISOString(),
@@ -203,6 +209,7 @@ function normalizeState(nextState) {
     ...nextState,
     students: normalizeStudents(nextState.students || []),
     grades: nextState.grades || [],
+    feePayments: nextState.feePayments || [],
   };
 }
 
@@ -329,6 +336,7 @@ function route(viewId) {
     students: renderStudents,
     admissions: renderAdmissions,
     grades: renderGrades,
+    fees: renderFees,
     programs: renderPrograms,
     graduation: renderGraduation,
     alumni: renderAlumni,
@@ -342,6 +350,7 @@ function route(viewId) {
 function renderDashboard() {
   const stats = getStats();
   const gradeStats = getGradeStats();
+  const feeStats = getFeeStats();
   view.innerHTML = `
     <section class="hero-band">
       <div class="hero-copy">
@@ -378,6 +387,20 @@ function renderDashboard() {
       </div>
       <button class="primary" type="button" id="open-grade-dashboard">Open Grade Dashboard</button>
     </section>
+    <section class="card fee-dashboard-card">
+      <div>
+        <p class="eyebrow">Fee Dashboard</p>
+        <h3>Student Payment Records</h3>
+        <p class="muted">Enter monthly fees, admission fees, examination fees, receipt numbers, payment method, and pending balances.</p>
+      </div>
+      <div class="mini-stat-grid">
+        <div><strong>${feeStats.entries}</strong><span>Payments</span></div>
+        <div><strong>${formatCurrency(feeStats.collected)}</strong><span>Collected</span></div>
+        <div><strong>${formatCurrency(feeStats.balance)}</strong><span>Balance</span></div>
+        <div><strong>${feeStats.pending}</strong><span>Pending</span></div>
+      </div>
+      <button class="primary" type="button" id="open-fee-dashboard">Open Fee Dashboard</button>
+    </section>
     <section class="grid two-col" style="margin-top:16px">
       <div class="card">
         <h3>Program Register Summary</h3>
@@ -397,6 +420,7 @@ function renderDashboard() {
   bindDashboardStatCards();
   bindDashboardProgramLinks();
   document.getElementById("open-grade-dashboard").addEventListener("click", () => route("grades"));
+  document.getElementById("open-fee-dashboard").addEventListener("click", () => route("fees"));
 }
 
 function renderStudents() {
@@ -504,6 +528,64 @@ function renderGrades() {
   bindGradeToolbar();
 }
 
+function renderFees() {
+  const stats = getFeeStats();
+  view.innerHTML = `
+    <section class="grid stats">
+      ${statCard(stats.entries, "Payment Entries")}
+      ${statCard(formatCurrency(stats.collected), "Collected")}
+      ${statCard(formatCurrency(stats.balance), "Balance")}
+      ${statCard(stats.pending, "Pending")}
+    </section>
+    <section class="grid two-col" style="margin-top:16px">
+      <form id="fee-form" class="card stack">
+        <div>
+          <p class="eyebrow">Fee Entry</p>
+          <h3>Add Fee Payment</h3>
+        </div>
+        <div class="form-grid">
+          <label class="full">Student${studentSelect("studentRegisterNumber")}</label>
+          <label>Fee Type${simpleSelect("feeType", FEE_TYPES, "Monthly Fee")}</label>
+          <label>Fee Period<input name="feePeriod" placeholder="Example: May 2026" required /></label>
+          <label>Academic Year<input name="academicYear" value="${new Date().getFullYear()}" required /></label>
+          <label>Total Fee<input name="totalFee" type="number" min="0" step="0.01" required /></label>
+          <label>Amount Paid<input name="amountPaid" type="number" min="0" step="0.01" required /></label>
+          <label>Payment Date<input name="paymentDate" type="date" value="${new Date().toISOString().slice(0, 10)}" required /></label>
+          <label>Receipt Number<input name="receiptNumber" placeholder="Office receipt number" /></label>
+          <label>Payment Method${simpleSelect("paymentMethod", PAYMENT_METHODS, "Bank Transfer")}</label>
+          <label>Status${simpleSelect("status", FEE_STATUSES, "Paid")}</label>
+          <label class="full">Office Notes<textarea name="notes" placeholder="Bank reference, concession, scholarship, balance remarks"></textarea></label>
+        </div>
+        <button class="primary" type="submit">Save Payment</button>
+      </form>
+      <div class="card stack">
+        <div>
+          <p class="eyebrow">Payment Dashboard</p>
+          <h3>Fee Collection Snapshot</h3>
+        </div>
+        <div class="notice-list">
+          <div class="notice"><strong>Student-linked:</strong> Every payment is connected to one register number.</div>
+          <div class="notice"><strong>Balance-aware:</strong> The portal calculates the remaining balance from total fee and amount paid.</div>
+          <div class="notice"><strong>Office-ready:</strong> Export fee payment records for accounts, follow-up, and backup.</div>
+        </div>
+        <button id="export-fees" class="secondary">Export Fees CSV</button>
+      </div>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <div class="fee-toolbar">
+        <input id="fee-search" placeholder="Search student, register number, receipt, period" value="${escapeHtml(feeFilters.search)}" />
+        ${selectHtml("fee-program", ["All", ...unique(state.students.map((student) => student.program))], feeFilters.program)}
+        ${selectHtml("fee-status", ["All", ...FEE_STATUSES], feeFilters.status)}
+        ${selectHtml("fee-year", ["All", ...unique(state.feePayments.map((payment) => String(payment.academicYear))).sort()], feeFilters.academicYear)}
+      </div>
+      <div id="fee-results" class="table-wrap">${feeTable(getFilteredFeePayments())}</div>
+    </section>
+  `;
+  document.getElementById("fee-form").addEventListener("submit", addFeePayment);
+  document.getElementById("export-fees").addEventListener("click", () => exportFeesCsv("agbs-fee-payment-report.csv", getFilteredFeePayments()));
+  bindFeeToolbar();
+}
+
 function renderPrograms() {
   const counts = groupBy(state.students, "program");
   view.innerHTML = `
@@ -578,6 +660,7 @@ function renderReports() {
         <button class="secondary" id="export-alumni">Export Alumni CSV</button>
         <button class="secondary" id="export-programs">Export program summary CSV</button>
         <button class="secondary" id="export-all-grades">Export Grades CSV</button>
+        <button class="secondary" id="export-all-fees">Export Fees CSV</button>
         <div class="notice">Reports include register number, program, batch, language, status, graduation year, and notes.</div>
       </div>
       <div class="card stack">
@@ -602,6 +685,7 @@ function renderReports() {
   document.getElementById("export-alumni").addEventListener("click", () => exportCsv("agbs-alumni-graduates.csv", state.students.filter((s) => s.status === "Alumni")));
   document.getElementById("export-programs").addEventListener("click", exportProgramSummary);
   document.getElementById("export-all-grades").addEventListener("click", () => exportGradesCsv("agbs-grade-report.csv", state.grades));
+  document.getElementById("export-all-fees").addEventListener("click", () => exportFeesCsv("agbs-fee-payment-report.csv", state.feePayments));
   document.getElementById("run-import").addEventListener("click", importCsv);
 }
 
@@ -956,6 +1040,124 @@ function gradeTable(grades) {
   `;
 }
 
+function addFeePayment(event) {
+  event.preventDefault();
+  const data = new FormData(event.currentTarget);
+  const student = state.students.find((item) => item.registerNumber === data.get("studentRegisterNumber"));
+  if (!student) {
+    alert("Please choose a student.");
+    return;
+  }
+  const totalFee = Number(data.get("totalFee"));
+  const amountPaid = Number(data.get("amountPaid"));
+  const balance = Math.max(0, Math.round((totalFee - amountPaid) * 100) / 100);
+  const status = balance <= 0 && data.get("status") !== "Waived" ? "Paid" : data.get("status");
+  const payment = {
+    id: `fee-${Date.now()}`,
+    studentId: student.id,
+    studentName: student.name,
+    registerNumber: student.registerNumber,
+    program: student.program,
+    specialization: student.specialization || "",
+    feeType: data.get("feeType"),
+    feePeriod: data.get("feePeriod").trim(),
+    academicYear: data.get("academicYear").trim(),
+    totalFee,
+    amountPaid,
+    balance,
+    paymentDate: data.get("paymentDate"),
+    receiptNumber: data.get("receiptNumber").trim(),
+    paymentMethod: data.get("paymentMethod"),
+    status,
+    notes: data.get("notes").trim(),
+    createdAt: new Date().toISOString(),
+  };
+  state.feePayments.unshift(payment);
+  saveState(`Added fee payment for ${student.name} - ${payment.feePeriod}`);
+  event.currentTarget.reset();
+  route("fees");
+}
+
+function getFeeStats() {
+  const entries = state.feePayments.length;
+  const collected = state.feePayments.reduce((sum, payment) => sum + Number(payment.amountPaid || 0), 0);
+  const balance = state.feePayments.reduce((sum, payment) => sum + Number(payment.balance || 0), 0);
+  const pending = state.feePayments.filter((payment) => ["Pending", "Partial"].includes(payment.status) || Number(payment.balance || 0) > 0).length;
+  return {
+    entries,
+    collected: Math.round(collected * 100) / 100,
+    balance: Math.round(balance * 100) / 100,
+    pending,
+  };
+}
+
+function bindFeeToolbar() {
+  [
+    ["search", "input"],
+    ["program", "change"],
+    ["status", "change"],
+    ["year", "change"],
+  ].forEach(([name, eventName]) => {
+    const el = document.getElementById(`fee-${name}`);
+    el.addEventListener(eventName, () => {
+      const key = name === "year" ? "academicYear" : name;
+      feeFilters[key] = el.value;
+      refreshFeeResults();
+    });
+  });
+}
+
+function refreshFeeResults() {
+  const results = document.getElementById("fee-results");
+  if (!results) return;
+  results.innerHTML = feeTable(getFilteredFeePayments());
+}
+
+function getFilteredFeePayments() {
+  const query = feeFilters.search.toLowerCase();
+  return state.feePayments.filter((payment) => {
+    const text = `${payment.studentName} ${payment.registerNumber} ${payment.program} ${payment.feeType} ${payment.feePeriod} ${payment.receiptNumber} ${payment.paymentMethod} ${payment.notes}`.toLowerCase();
+    return (!query || text.includes(query))
+      && (feeFilters.program === "All" || payment.program === feeFilters.program)
+      && (feeFilters.status === "All" || payment.status === feeFilters.status)
+      && (feeFilters.academicYear === "All" || String(payment.academicYear) === feeFilters.academicYear);
+  });
+}
+
+function feeTable(payments) {
+  if (!payments.length) {
+    return `<div class="empty-state"><strong>No Fee Payments Yet</strong><span>Add a payment entry above or adjust the filters.</span></div>`;
+  }
+  return `
+    <table>
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Fee Details</th>
+          <th>Total Fee</th>
+          <th>Paid</th>
+          <th>Balance</th>
+          <th>Status</th>
+          <th>Receipt</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${payments.map((payment) => `
+          <tr>
+            <td><strong>${escapeHtml(toTitleCase(payment.studentName))}</strong><br><span class="muted">${escapeHtml(payment.registerNumber)}</span></td>
+            <td>${escapeHtml(toTitleCase(payment.feeType))}<br><span class="muted">${escapeHtml(payment.feePeriod)} / ${escapeHtml(payment.academicYear)}</span></td>
+            <td>${formatCurrency(payment.totalFee)}</td>
+            <td>${formatCurrency(payment.amountPaid)}<br><span class="muted">${escapeHtml(payment.paymentDate)}</span></td>
+            <td>${formatCurrency(payment.balance)}</td>
+            <td>${statusBadge(payment.status)}</td>
+            <td>${escapeHtml(payment.receiptNumber || "Pending")}<br><span class="muted">${escapeHtml(payment.paymentMethod)}</span></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
 function generateRegisterNumber(name, program, specialization, language, year) {
   const initials = name
     .replace(/[^A-Za-z ]/g, " ")
@@ -1163,6 +1365,10 @@ function selectHtml(id, options, selected) {
   return `<select id="${id}">${options.map((option) => `<option value="${escapeHtml(option)}" ${option === selected ? "selected" : ""}>${escapeHtml(option === "All" ? option : toTitleCase(option))}</option>`).join("")}</select>`;
 }
 
+function simpleSelect(name, options, selected) {
+  return `<select name="${name}">${options.map((option) => `<option value="${escapeHtml(option)}" ${option === selected ? "selected" : ""}>${escapeHtml(toTitleCase(option))}</option>`).join("")}</select>`;
+}
+
 function studentSelect(name) {
   const activeFirst = [...state.students].sort((a, b) => {
     const statusOrder = Number(["Active Student", "Admitted"].includes(b.status)) - Number(["Active Student", "Admitted"].includes(a.status));
@@ -1209,6 +1415,22 @@ function exportGradesCsv(filename, rows) {
   const csv = [headers.join(","), ...rows.map((row) => headers.map((key) => csvCell(row[key])).join(","))].join("\n");
   downloadText(filename, csv, "text/csv");
   addAudit(`Exported ${filename}`);
+}
+
+function exportFeesCsv(filename, rows) {
+  const headers = ["studentName", "registerNumber", "program", "specialization", "feeType", "feePeriod", "academicYear", "totalFee", "amountPaid", "balance", "paymentDate", "receiptNumber", "paymentMethod", "status", "notes"];
+  const csv = [headers.join(","), ...rows.map((row) => headers.map((key) => csvCell(row[key])).join(","))].join("\n");
+  downloadText(filename, csv, "text/csv");
+  addAudit(`Exported ${filename}`);
+}
+
+function formatCurrency(value) {
+  const amount = Number(value || 0);
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
+  }).format(amount);
 }
 
 function csvCell(value) {
