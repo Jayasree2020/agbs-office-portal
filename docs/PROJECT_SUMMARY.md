@@ -20,7 +20,9 @@ This document explains, point by point, what has been made so far and what each 
 
 - Shows high-level office numbers only.
 - Displays total records, active students, alumni, and programs.
+- Includes a grade dashboard snapshot with grade entries, passed records, pending records, and average percentage.
 - Lets the office click each number to open the matching student details on the Students page.
+- Lets the office open the full Grades page from the dashboard snapshot.
 - Shows Program Register Summary.
 - Does not show student lists unless the office opens them from the Students page.
 
@@ -44,6 +46,14 @@ This document explains, point by point, what has been made so far and what each 
 - Adds new admitted students.
 - Generates AGBS-style register numbers when the office leaves the number blank.
 - Supports program, department/specialization, language, admission year, expected completion year, and notes.
+
+## Grades Dashboard
+
+- Records grades against existing student register numbers.
+- Stores subject, term, academic year, marks obtained, maximum marks, percentage, grade, result, and notes.
+- Shows grade dashboard cards for total entries, passed records, pending records, and average percentage.
+- Filters grade records by student/search text, program, result, and academic year.
+- Exports grade records as CSV for academic review or backup.
 
 ## Graduation And Alumni
 
