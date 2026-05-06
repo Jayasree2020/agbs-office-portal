@@ -10,7 +10,7 @@ Repository: [Jayasree2020/agbs-office-portal](https://github.com/Jayasree2020/ag
 ## What This Project Does
 
 - **Office Login** - Protects the portal with the AGBS office email and private register password.
-- **Office Dashboard** - Shows total records, active students, alumni, and program count at a glance.
+- **Office Dashboard** - Shows total records, active students, alumni, and program count at a glance; each number opens the Students page with the matching records.
 - **Program Register Summary** - Lists B.Th, M.Div, M.Th, Dip.BS, and DWM with duration, departments, record count, and a link to the student list.
 - **Students Page** - Opens the selected program list and groups students by 1st Year, 2nd Year, 3rd Year, and Alumni year.
 - **Student Profiles** - Stores each student name, register number, program, department, batch, status, graduation year, contact fields, ministry, address, and office notes.
@@ -49,6 +49,7 @@ Repository: [Jayasree2020/agbs-office-portal](https://github.com/Jayasree2020/ag
 - Vercel deployment connected to GitHub.
 - Student list moved away from the dashboard and shown only on the Students page when requested.
 - Dashboard Program Register Summary linked to filtered student lists.
+- Dashboard number cards now work as shortcuts to detailed student records.
 - GitHub repository organized with documentation and deployment notes.
 
 ## Repository Map
