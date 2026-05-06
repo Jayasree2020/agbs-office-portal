@@ -128,8 +128,9 @@ const NAV_ITEMS = [
 let state = null;
 let currentView = "dashboard";
 let filters = { search: "", program: "All", status: "All", batch: "All", language: "All" };
-let gradeFilters = { search: "", program: "All", result: "All", academicYear: "All" };
+let gradeFilters = { search: "", program: "All", subject: "All", term: "All", result: "All", academicYear: "All" };
 let feeFilters = { search: "", program: "All", status: "All", academicYear: "All" };
+let editingGradeId = null;
 
 const loginScreen = document.getElementById("login-screen");
 const appShell = document.getElementById("app");
@@ -474,6 +475,8 @@ function renderAdmissions() {
 
 function renderGrades() {
   const stats = getGradeStats();
+  const editingGrade = editingGradeId ? state.grades.find((grade) => grade.id === editingGradeId) : null;
+  const filteredGrades = getFilteredGrades();
   view.innerHTML = `
     <section class="grid stats">
       ${statCard(stats.entries, "Grade Entries")}
@@ -485,20 +488,23 @@ function renderGrades() {
       <form id="grade-form" class="card stack">
         <div>
           <p class="eyebrow">Grade Entry</p>
-          <h3>Add Student Grade</h3>
+          <h3>${editingGrade ? "Edit Student Grade" : "Add Student Grade"}</h3>
         </div>
         <div class="form-grid">
-          <label class="full">Student${studentSelect("studentRegisterNumber")}</label>
-          <label>Subject<input name="subject" placeholder="Example: New Testament Survey" required /></label>
-          <label>Term / Semester<input name="term" placeholder="Example: Semester 1" required /></label>
-          <label>Academic Year<input name="academicYear" value="${new Date().getFullYear()}" required /></label>
-          <label>Marks Obtained<input name="marks" type="number" min="0" step="0.01" required /></label>
-          <label>Maximum Marks<input name="maxMarks" type="number" min="1" step="0.01" value="100" required /></label>
-          <label>Grade<input name="grade" placeholder="A, B+, Pass, etc." required /></label>
-          <label>Result${resultSelect("result", "Pass")}</label>
-          <label class="full">Office Notes<textarea name="notes" placeholder="Exam notes, moderation notes, revaluation notes"></textarea></label>
+          <label class="full">Student${studentSelect("studentRegisterNumber", editingGrade?.registerNumber || "")}</label>
+          <label>Subject<input name="subject" placeholder="Example: New Testament Survey" value="${escapeHtml(editingGrade?.subject || "")}" required /></label>
+          <label>Term / Semester<input name="term" placeholder="Example: Semester 1" value="${escapeHtml(editingGrade?.term || "")}" required /></label>
+          <label>Academic Year<input name="academicYear" value="${escapeHtml(editingGrade?.academicYear || new Date().getFullYear())}" required /></label>
+          <label>Marks Obtained<input name="marks" type="number" min="0" step="0.01" value="${escapeHtml(editingGrade?.marks ?? "")}" required /></label>
+          <label>Maximum Marks<input name="maxMarks" type="number" min="1" step="0.01" value="${escapeHtml(editingGrade?.maxMarks ?? 100)}" required /></label>
+          <label>Grade<input name="grade" placeholder="A, B+, Pass, etc." value="${escapeHtml(editingGrade?.grade || "")}" required /></label>
+          <label>Result${resultSelect("result", editingGrade?.result || "Pass")}</label>
+          <label class="full">Office Notes<textarea name="notes" placeholder="Exam notes, moderation notes, revaluation notes">${escapeHtml(editingGrade?.notes || "")}</textarea></label>
         </div>
-        <button class="primary" type="submit">Save Grade</button>
+        <div class="button-row">
+          <button class="primary" type="submit">${editingGrade ? "Update Grade" : "Save Grade"}</button>
+          ${editingGrade ? `<button class="secondary" type="button" id="cancel-grade-edit">Cancel Edit</button>` : ""}
+        </div>
       </form>
       <div class="card stack">
         <div>
@@ -507,25 +513,51 @@ function renderGrades() {
         </div>
         <div class="notice-list">
           <div class="notice"><strong>Student-linked:</strong> Every grade is connected to one existing register number.</div>
-          <div class="notice"><strong>Office-ready:</strong> Filter by program, result, academic year, or student name.</div>
-          <div class="notice"><strong>Export:</strong> Download grade records for review, reports, or backup.</div>
+          <div class="notice"><strong>Office-ready:</strong> Filter by course/program, semester, subject, result, academic year, or student name.</div>
+          <div class="notice"><strong>Export:</strong> Download the exact filtered grade list for review, reports, or backup.</div>
         </div>
         <button id="export-grades" class="secondary">Export Grades CSV</button>
       </div>
+    </section>
+    <section class="card import-panel" style="margin-top:16px">
+      <div>
+        <p class="eyebrow">Bulk Grade Upload</p>
+        <h3>Import Grades From Word Or CSV</h3>
+        <p class="muted">Upload a .docx Word table, .csv, or .txt table. Columns can include Register Number, Student Name, Program, Subject, Semester, Academic Year, Marks, Max Marks, Grade, Result, and Notes.</p>
+      </div>
+      <div class="import-actions">
+        <input id="grade-import-file" type="file" accept=".docx,.csv,.txt,.doc,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+        <button class="primary" id="run-grade-import" type="button">Import Grade File</button>
+        <button class="secondary" id="download-grade-template" type="button">Download Grade Template</button>
+      </div>
+      <div id="grade-import-status" class="notice">For older .doc files, open the file in Word and use Save As .docx before upload.</div>
     </section>
     <section class="card" style="margin-top:16px">
       <div class="grade-toolbar">
         <input id="grade-search" placeholder="Search student, register number, subject, grade" value="${escapeHtml(gradeFilters.search)}" />
         ${selectHtml("grade-program", ["All", ...unique(state.students.map((student) => student.program))], gradeFilters.program)}
+        ${selectHtml("grade-subject", ["All", ...unique(state.grades.map((grade) => grade.subject)).sort()], gradeFilters.subject)}
+        ${selectHtml("grade-term", ["All", ...unique(state.grades.map((grade) => grade.term)).sort()], gradeFilters.term)}
         ${selectHtml("grade-result", ["All", ...GRADE_RESULTS], gradeFilters.result)}
         ${selectHtml("grade-year", ["All", ...unique(state.grades.map((grade) => String(grade.academicYear))).sort()], gradeFilters.academicYear)}
       </div>
-      <div id="grade-results" class="table-wrap">${gradeTable(getFilteredGrades())}</div>
+      <div class="table-summary">
+        <strong>${filteredGrades.length}</strong>
+        <span>grade record${filteredGrades.length === 1 ? "" : "s"} in this view</span>
+      </div>
+      <div id="grade-results" class="table-wrap">${gradeTable(filteredGrades)}</div>
     </section>
   `;
   document.getElementById("grade-form").addEventListener("submit", addGrade);
   document.getElementById("export-grades").addEventListener("click", () => exportGradesCsv("agbs-grade-report.csv", getFilteredGrades()));
+  document.getElementById("run-grade-import").addEventListener("click", importGradeFile);
+  document.getElementById("download-grade-template").addEventListener("click", downloadGradeTemplate);
+  document.getElementById("cancel-grade-edit")?.addEventListener("click", () => {
+    editingGradeId = null;
+    renderGrades();
+  });
   bindGradeToolbar();
+  bindGradeActions();
 }
 
 function renderFees() {
@@ -957,10 +989,27 @@ function addGrade(event) {
     grade: data.get("grade").trim(),
     result: data.get("result"),
     notes: data.get("notes").trim(),
-    createdAt: new Date().toISOString(),
   };
-  state.grades.unshift(grade);
-  saveState(`Added grade for ${student.name} - ${grade.subject}`);
+  if (editingGradeId) {
+    const index = state.grades.findIndex((item) => item.id === editingGradeId);
+    if (index >= 0) {
+      state.grades[index] = {
+        ...state.grades[index],
+        ...grade,
+        id: editingGradeId,
+        updatedAt: new Date().toISOString(),
+      };
+      saveState(`Updated grade for ${student.name} - ${grade.subject}`);
+    }
+    editingGradeId = null;
+  } else {
+    state.grades.unshift({
+      ...grade,
+      id: `grade-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    });
+    saveState(`Added grade for ${student.name} - ${grade.subject}`);
+  }
   event.currentTarget.reset();
   route("grades");
 }
@@ -977,6 +1026,8 @@ function bindGradeToolbar() {
   [
     ["search", "input"],
     ["program", "change"],
+    ["subject", "change"],
+    ["term", "change"],
     ["result", "change"],
     ["year", "change"],
   ].forEach(([name, eventName]) => {
@@ -992,7 +1043,13 @@ function bindGradeToolbar() {
 function refreshGradeResults() {
   const results = document.getElementById("grade-results");
   if (!results) return;
-  results.innerHTML = gradeTable(getFilteredGrades());
+  const filteredGrades = getFilteredGrades();
+  const summary = document.querySelector(".table-summary");
+  if (summary) {
+    summary.innerHTML = `<strong>${filteredGrades.length}</strong><span>grade record${filteredGrades.length === 1 ? "" : "s"} in this view</span>`;
+  }
+  results.innerHTML = gradeTable(filteredGrades);
+  bindGradeActions();
 }
 
 function getFilteredGrades() {
@@ -1001,9 +1058,234 @@ function getFilteredGrades() {
     const text = `${grade.studentName} ${grade.registerNumber} ${grade.program} ${grade.subject} ${grade.term} ${grade.grade} ${grade.notes}`.toLowerCase();
     return (!query || text.includes(query))
       && (gradeFilters.program === "All" || grade.program === gradeFilters.program)
+      && (gradeFilters.subject === "All" || grade.subject === gradeFilters.subject)
+      && (gradeFilters.term === "All" || grade.term === gradeFilters.term)
       && (gradeFilters.result === "All" || grade.result === gradeFilters.result)
       && (gradeFilters.academicYear === "All" || String(grade.academicYear) === gradeFilters.academicYear);
   });
+}
+
+function bindGradeActions() {
+  document.querySelectorAll("[data-edit-grade]").forEach((button) => {
+    button.addEventListener("click", () => {
+      editingGradeId = button.dataset.editGrade;
+      renderGrades();
+    });
+  });
+  document.querySelectorAll("[data-delete-grade]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const grade = state.grades.find((item) => item.id === button.dataset.deleteGrade);
+      if (!grade || !confirm(`Delete grade for ${grade.studentName} - ${grade.subject}?`)) return;
+      state.grades = state.grades.filter((item) => item.id !== grade.id);
+      saveState(`Deleted grade for ${grade.studentName} - ${grade.subject}`);
+      if (editingGradeId === grade.id) editingGradeId = null;
+      renderGrades();
+    });
+  });
+}
+
+async function importGradeFile() {
+  const fileInput = document.getElementById("grade-import-file");
+  const status = document.getElementById("grade-import-status");
+  const file = fileInput.files[0];
+  if (!file) {
+    status.textContent = "Choose a Word .docx, CSV, or text file first.";
+    return;
+  }
+  if (/\.doc$/i.test(file.name)) {
+    status.textContent = "This is an older Word .doc file. Please open it in Word, Save As .docx, then upload again.";
+    return;
+  }
+  status.textContent = "Reading grade file...";
+  try {
+    const text = await readGradeImportFile(file);
+    const rows = parseGradeImportRows(text);
+    const result = importGradeRows(rows, file.name);
+    status.textContent = `Imported ${result.imported} grade records. Skipped ${result.skipped} row${result.skipped === 1 ? "" : "s"}.`;
+    if (result.imported) {
+      gradeFilters = { search: "", program: "All", subject: "All", term: "All", result: "All", academicYear: "All" };
+      editingGradeId = null;
+      renderGrades();
+      alert(`Imported ${result.imported} grade records from ${file.name}.`);
+    }
+  } catch (error) {
+    status.textContent = `Could not import this file: ${error.message}`;
+  }
+}
+
+async function readGradeImportFile(file) {
+  if (/\.docx$/i.test(file.name)) {
+    return extractTextFromDocx(file);
+  }
+  return file.text();
+}
+
+async function extractTextFromDocx(file) {
+  if (!window.JSZip) {
+    throw new Error("Word import library is still loading. Please refresh the page and try again.");
+  }
+  const zip = await window.JSZip.loadAsync(await file.arrayBuffer());
+  const documentFile = zip.file("word/document.xml") || Object.values(zip.files).find((entry) => entry.name.replace(/\\/g, "/") === "word/document.xml");
+  if (!documentFile) throw new Error("This Word file does not contain readable document text.");
+  const xml = await documentFile.async("text");
+  const doc = new DOMParser().parseFromString(xml, "application/xml");
+  const tableRows = wordNodes(doc, "tr");
+  if (tableRows.length) {
+    return tableRows.map((row) => {
+      const cells = wordNodes(row, "tc");
+      return cells.map((cell) => textFromWordNode(cell)).join("\t");
+    }).join("\n");
+  }
+  const paragraphs = wordNodes(doc, "p");
+  return paragraphs.map((paragraph) => textFromWordNode(paragraph)).filter(Boolean).join("\n");
+}
+
+function textFromWordNode(node) {
+  const textNodes = wordNodes(node, "t");
+  return textNodes.map((item) => item.textContent || "").join("").replace(/\s+/g, " ").trim();
+}
+
+function wordNodes(root, localName) {
+  return [...new Set([...root.getElementsByTagName(`w:${localName}`), ...root.getElementsByTagNameNS("*", localName)])];
+}
+
+function parseGradeImportRows(text) {
+  const lines = String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (!lines.length) return [];
+  const delimiter = lines[0].includes("\t") ? "\t" : ",";
+  const headers = splitDelimitedLine(lines.shift(), delimiter).map(normalizeImportHeader);
+  if (!headers.some((header) => ["registerNumber", "studentName", "name"].includes(header))) {
+    throw new Error("The first row must include Register Number or Student Name.");
+  }
+  return lines.map((line) => {
+    const values = splitDelimitedLine(line, delimiter);
+    return headers.reduce((row, header, index) => {
+      if (header) row[header] = values[index] || "";
+      return row;
+    }, {});
+  }).filter((row) => Object.values(row).some(Boolean));
+}
+
+function normalizeImportHeader(header) {
+  const key = String(header || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const map = {
+    registerno: "registerNumber",
+    registernumber: "registerNumber",
+    admissionnumber: "registerNumber",
+    studentname: "studentName",
+    name: "studentName",
+    program: "program",
+    course: "program",
+    degree: "program",
+    subject: "subject",
+    paper: "subject",
+    term: "term",
+    semester: "term",
+    sem: "term",
+    academicyear: "academicYear",
+    year: "academicYear",
+    marks: "marks",
+    marksobtained: "marks",
+    maxmarks: "maxMarks",
+    maximummarks: "maxMarks",
+    totalmarks: "maxMarks",
+    grade: "grade",
+    result: "result",
+    status: "result",
+    notes: "notes",
+    remarks: "notes",
+  };
+  return map[key] || key;
+}
+
+function splitDelimitedLine(line, delimiter) {
+  if (delimiter === ",") return splitCsvLine(line);
+  return line.split("\t").map((cell) => cell.trim());
+}
+
+function importGradeRows(rows, sourceName) {
+  let imported = 0;
+  let skipped = 0;
+  rows.forEach((row) => {
+    const student = findStudentForImport(row);
+    const subject = String(row.subject || "").trim();
+    const marks = Number(row.marks);
+    const maxMarks = Number(row.maxMarks || 100);
+    if (!student || !subject || Number.isNaN(marks) || Number.isNaN(maxMarks) || maxMarks <= 0) {
+      skipped += 1;
+      return;
+    }
+    const grade = buildGradeRecord({
+      student,
+      subject,
+      term: row.term || "Semester Pending",
+      academicYear: row.academicYear || new Date().getFullYear(),
+      marks,
+      maxMarks,
+      grade: row.grade || calculateLetterGrade(marks, maxMarks),
+      result: normalizeGradeResult(row.result),
+      notes: row.notes || `Imported from ${sourceName}`,
+    });
+    state.grades.unshift(grade);
+    imported += 1;
+  });
+  if (imported) saveState(`Imported ${imported} grade records from ${sourceName}`);
+  return { imported, skipped };
+}
+
+function findStudentForImport(row) {
+  const registerNumber = String(row.registerNumber || "").trim().toLowerCase();
+  if (registerNumber) {
+    const byRegister = state.students.find((student) => student.registerNumber.toLowerCase() === registerNumber);
+    if (byRegister) return byRegister;
+  }
+  const name = String(row.studentName || row.name || "").trim().toLowerCase();
+  if (!name) return null;
+  return state.students.find((student) => student.name.toLowerCase() === name)
+    || state.students.find((student) => student.name.toLowerCase().includes(name) || name.includes(student.name.toLowerCase()));
+}
+
+function buildGradeRecord({ student, subject, term, academicYear, marks, maxMarks, grade, result, notes }) {
+  const percent = maxMarks > 0 ? Math.round((marks / maxMarks) * 10000) / 100 : 0;
+  return {
+    id: `grade-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    studentId: student.id,
+    studentName: student.name,
+    registerNumber: student.registerNumber,
+    program: student.program,
+    specialization: student.specialization || "",
+    subject: String(subject || "").trim(),
+    term: String(term || "").trim(),
+    academicYear: String(academicYear || "").trim(),
+    marks,
+    maxMarks,
+    percent,
+    grade: String(grade || "").trim(),
+    result,
+    notes: String(notes || "").trim(),
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function normalizeGradeResult(value) {
+  const text = toTitleCase(String(value || "").trim());
+  return GRADE_RESULTS.includes(text) ? text : "Pass";
+}
+
+function calculateLetterGrade(marks, maxMarks) {
+  const percent = maxMarks > 0 ? (Number(marks) / Number(maxMarks)) * 100 : 0;
+  if (percent >= 90) return "A+";
+  if (percent >= 80) return "A";
+  if (percent >= 70) return "B+";
+  if (percent >= 60) return "B";
+  if (percent >= 50) return "C";
+  return "Fail";
+}
+
+function downloadGradeTemplate() {
+  const headers = ["Register Number", "Student Name", "Program", "Subject", "Semester", "Academic Year", "Marks", "Max Marks", "Grade", "Result", "Notes"];
+  const sample = ["AGBS-BTH-ENG-2026-XX001", "Student Name", "Bachelor of Theology", "New Testament Survey", "Semester 1", "2026", "88", "100", "A", "Pass", "Imported from office grade sheet"];
+  downloadText("agbs-grade-import-template.csv", [headers.join(","), sample.map(csvCell).join(",")].join("\n"), "text/csv");
 }
 
 function gradeTable(grades) {
@@ -1021,6 +1303,7 @@ function gradeTable(grades) {
           <th>Grade</th>
           <th>Result</th>
           <th>Academic Year</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -1033,6 +1316,12 @@ function gradeTable(grades) {
             <td><strong>${escapeHtml(grade.grade)}</strong></td>
             <td>${statusBadge(grade.result)}</td>
             <td>${escapeHtml(grade.academicYear)}</td>
+            <td>
+              <div class="table-actions">
+                <button class="small-button" type="button" data-edit-grade="${escapeHtml(grade.id)}">Edit</button>
+                <button class="small-button danger" type="button" data-delete-grade="${escapeHtml(grade.id)}">Delete</button>
+              </div>
+            </td>
           </tr>
         `).join("")}
       </tbody>
@@ -1369,14 +1658,14 @@ function simpleSelect(name, options, selected) {
   return `<select name="${name}">${options.map((option) => `<option value="${escapeHtml(option)}" ${option === selected ? "selected" : ""}>${escapeHtml(toTitleCase(option))}</option>`).join("")}</select>`;
 }
 
-function studentSelect(name) {
+function studentSelect(name, selected = "") {
   const activeFirst = [...state.students].sort((a, b) => {
     const statusOrder = Number(["Active Student", "Admitted"].includes(b.status)) - Number(["Active Student", "Admitted"].includes(a.status));
     return statusOrder || a.name.localeCompare(b.name);
   });
   return `<select name="${name}" required>
     <option value="">Choose Student</option>
-    ${activeFirst.map((student) => `<option value="${escapeHtml(student.registerNumber)}">${escapeHtml(toTitleCase(student.name))} - ${escapeHtml(student.registerNumber)}</option>`).join("")}
+    ${activeFirst.map((student) => `<option value="${escapeHtml(student.registerNumber)}" ${student.registerNumber === selected ? "selected" : ""}>${escapeHtml(toTitleCase(student.name))} - ${escapeHtml(student.registerNumber)}</option>`).join("")}
   </select>`;
 }
 
