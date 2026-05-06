@@ -20,6 +20,7 @@ This document explains, point by point, what has been made so far and what each 
 
 - Shows high-level office numbers only.
 - Displays total records, active students, alumni, and programs.
+- Lets the office click each number to open the matching student details on the Students page.
 - Shows Program Register Summary.
 - Does not show student lists unless the office opens them from the Students page.
 
