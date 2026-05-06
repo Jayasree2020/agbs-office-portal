@@ -15,7 +15,7 @@ Repository: [Jayasree2020/agbs-office-portal](https://github.com/Jayasree2020/ag
 - **Students Page** - Opens the selected program list and groups students by 1st Year, 2nd Year, 3rd Year, and Alumni year.
 - **Student Profiles** - Stores each student name, register number, program, department, batch, status, graduation year, contact fields, ministry, address, and office notes.
 - **Admissions Page** - Adds new admitted students and can generate register numbers in the AGBS format.
-- **Grades Dashboard** - Records student grades by subject, term, academic year, marks, grade, and result.
+- **Grades Dashboard** - Records student grades by subject, term, academic year, marks, grade, and result; supports Word .docx/CSV bulk import, editing, filtering, and filtered exports.
 - **Fees Dashboard** - Records fee payments by student, period, academic year, receipt number, payment method, paid amount, balance, and status.
 - **Graduation Page** - Moves completed students directly to Alumni, because all graduates are alumni.
 - **Alumni Page** - Keeps alumni records together for certificate reference, ministry follow-up, and office history.
@@ -52,7 +52,7 @@ Repository: [Jayasree2020/agbs-office-portal](https://github.com/Jayasree2020/ag
 - Student list moved away from the dashboard and shown only on the Students page when requested.
 - Dashboard Program Register Summary linked to filtered student lists.
 - Dashboard number cards now work as shortcuts to detailed student records.
-- Grades dashboard added to the main dashboard and Grades page for subject-wise marks, grade results, progress review, and CSV export.
+- Grades dashboard added to the main dashboard and Grades page for subject-wise marks, grade results, progress review, Word .docx/CSV import, editing, and CSV export.
 - Fees dashboard added to the main dashboard and Fees page for payment entry, receipt tracking, balances, and CSV export.
 - GitHub repository organized with documentation and deployment notes.
 
