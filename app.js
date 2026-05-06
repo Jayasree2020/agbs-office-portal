@@ -352,10 +352,10 @@ function renderDashboard() {
       </figure>
     </section>
     <section class="grid stats">
-      ${statCard(stats.total, "Total Records")}
-      ${statCard(stats.active, "Active Students")}
-      ${statCard(stats.alumni, "Alumni")}
-      ${statCard(stats.programs, "Programs")}
+      ${statCard(stats.total, "Total Records", "all")}
+      ${statCard(stats.active, "Active Students", "active")}
+      ${statCard(stats.alumni, "Alumni", "alumni")}
+      ${statCard(stats.programs, "Programs", "programs")}
     </section>
     <section class="grid two-col" style="margin-top:16px">
       <div class="card">
@@ -373,6 +373,7 @@ function renderDashboard() {
       </div>
     </section>
   `;
+  bindDashboardStatCards();
   bindDashboardProgramLinks();
 }
 
@@ -584,7 +585,7 @@ function renderToolbar() {
     <div class="toolbar">
       <input id="filter-search" placeholder="Search name, register number, notes" value="${escapeHtml(filters.search)}" />
       ${selectHtml("filter-program", ["All", ...programs], filters.program)}
-      ${selectHtml("filter-status", ["All", ...STATUSES], filters.status)}
+      ${selectHtml("filter-status", ["All", "Active Records", ...STATUSES], filters.status)}
       ${selectHtml("filter-batch", ["All", ...batches], filters.batch)}
       ${selectHtml("filter-language", ["All", ...languages], filters.language)}
     </div>
@@ -615,10 +616,15 @@ function getFilteredStudents() {
     const text = `${student.name} ${student.registerNumber} ${student.program} ${student.specialization} ${student.notes}`.toLowerCase();
     return (!query || text.includes(query))
       && (filters.program === "All" || student.program === filters.program)
-      && (filters.status === "All" || student.status === filters.status)
+      && (filters.status === "All" || statusMatchesFilter(student, filters.status))
       && (filters.batch === "All" || String(student.batchStart) === filters.batch)
       && (filters.language === "All" || student.language === filters.language);
   });
+}
+
+function statusMatchesFilter(student, status) {
+  if (status === "Active Records") return ["Active Student", "Admitted"].includes(student.status);
+  return student.status === status;
 }
 
 function studentTable(students, graduationActions = false) {
@@ -803,8 +809,11 @@ function findStudent(id) {
   return state.students.find((student) => student.id === id);
 }
 
-function statCard(value, label) {
-  return `<div class="card stat"><strong>${value}</strong><span>${label}</span></div>`;
+function statCard(value, label, target = "") {
+  if (!target) {
+    return `<div class="card stat"><strong>${value}</strong><span>${label}</span></div>`;
+  }
+  return `<button class="card stat stat-link" data-stat-target="${target}" aria-label="Open ${escapeHtml(label)} details"><strong>${value}</strong><span>${label}</span></button>`;
 }
 
 function summaryTable() {
@@ -832,6 +841,22 @@ function bindDashboardProgramLinks() {
   document.querySelectorAll("[data-summary-program]").forEach((button) => {
     button.addEventListener("click", () => {
       filters = { ...filters, search: "", program: button.dataset.summaryProgram, status: "All", batch: "All", language: "All" };
+      route("students");
+    });
+  });
+}
+
+function bindDashboardStatCards() {
+  document.querySelectorAll("[data-stat-target]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.statTarget;
+      if (target === "active") {
+        filters = { search: "", program: "All", status: "Active Records", batch: "All", language: "All" };
+      } else if (target === "alumni") {
+        filters = { search: "", program: "All", status: "Alumni", batch: "All", language: "All" };
+      } else {
+        filters = { search: "", program: "All", status: "All", batch: "All", language: "All" };
+      }
       route("students");
     });
   });
