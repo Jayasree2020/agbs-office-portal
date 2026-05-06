@@ -21,8 +21,10 @@ This document explains, point by point, what has been made so far and what each 
 - Shows high-level office numbers only.
 - Displays total records, active students, alumni, and programs.
 - Includes a grade dashboard snapshot with grade entries, passed records, pending records, and average percentage.
+- Includes a fee dashboard snapshot with payment entries, collected amount, pending balance, and pending payment count.
 - Lets the office click each number to open the matching student details on the Students page.
 - Lets the office open the full Grades page from the dashboard snapshot.
+- Lets the office open the full Fees page from the dashboard snapshot.
 - Shows Program Register Summary.
 - Does not show student lists unless the office opens them from the Students page.
 
@@ -55,6 +57,14 @@ This document explains, point by point, what has been made so far and what each 
 - Filters grade records by student/search text, program, result, and academic year.
 - Exports grade records as CSV for academic review or backup.
 
+## Fees Dashboard
+
+- Records fee payments against existing student register numbers.
+- Stores fee type, fee period, academic year, total fee, amount paid, balance, payment date, receipt number, payment method, status, and notes.
+- Shows fee dashboard cards for payment entries, collected amount, pending balance, and pending payment count.
+- Filters fee records by student/search text, program, payment status, and academic year.
+- Exports fee payment records as CSV for accounts, follow-up, and backup.
+
 ## Graduation And Alumni
 
 - All graduates are treated as alumni.
@@ -76,6 +86,8 @@ This document explains, point by point, what has been made so far and what each 
 - Export active students as CSV.
 - Export alumni as CSV.
 - Export program summary as CSV.
+- Export grade records as CSV.
+- Export fee payment records as CSV.
 - Download JSON backup for local safekeeping.
 
 ## Handbook Reference
