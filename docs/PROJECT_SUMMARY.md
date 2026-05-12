@@ -22,9 +22,11 @@ This document explains, point by point, what has been made so far and what each 
 - Displays total records, active students, alumni, and programs.
 - Includes a grade dashboard snapshot with grade entries, passed records, pending records, and average percentage.
 - Includes a fee dashboard snapshot with payment entries, collected amount, pending balance, and pending payment count.
+- Includes an AGBS Chronicles snapshot with historical entries, beginning year, latest year, and categories.
 - Lets the office click each number to open the matching student details on the Students page.
 - Lets the office open the full Grades page from the dashboard snapshot.
 - Lets the office open the full Fees page from the dashboard snapshot.
+- Lets the office open the full Chronicles page from the dashboard snapshot.
 - Shows Program Register Summary.
 - Does not show student lists unless the office opens them from the Students page.
 
@@ -67,6 +69,14 @@ This document explains, point by point, what has been made so far and what each 
 - Shows fee dashboard cards for payment entries, collected amount, pending balance, and pending payment count.
 - Filters fee records by student/search text, program, payment status, and academic year.
 - Exports fee payment records as CSV for accounts, follow-up, and backup.
+
+## Chronicles Dashboard
+
+- Keeps the AGBS tree of days in one editable office history.
+- Starts with 1997 initial ministry commitment and call into ministry.
+- Includes 2000 Amazing Grace name, 2013 ministry initiation, 2020 trust registration, 2021 Senate of Serampore affiliation, and 2021 ATA candidacy membership.
+- Lets the office add, edit, delete, and export chronicle entries.
+- Lets the office upload .docx, .txt, or .csv details for each chronicle day.
 
 ## Graduation And Alumni
 
