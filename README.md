@@ -10,13 +10,14 @@ Repository: [Jayasree2020/agbs-office-portal](https://github.com/Jayasree2020/ag
 ## What This Project Does
 
 - **Office Login** - Protects the portal with the AGBS office email and private register password.
-- **Office Dashboard** - Shows total records, active students, alumni, program count, grade progress, and fee collection at a glance; each student number opens the Students page with the matching records.
+- **Office Dashboard** - Shows total records, active students, alumni, program count, grade progress, fee collection, and AGBS chronicles at a glance; each student number opens the Students page with the matching records.
 - **Program Register Summary** - Lists B.Th, M.Div, M.Th, Dip.BS, and DWM with duration, departments, record count, and a link to the student list.
 - **Students Page** - Opens the selected program list and groups students by 1st Year, 2nd Year, 3rd Year, and Alumni year.
 - **Student Profiles** - Stores each student name, register number, program, department, batch, status, graduation year, contact fields, ministry, address, and office notes.
 - **Admissions Page** - Adds new admitted students and can generate register numbers in the AGBS format.
 - **Grades Dashboard** - Records student grades by subject, term, academic year, marks, grade, and result; supports Word .docx/CSV bulk import, editing, filtering, and filtered exports.
 - **Fees Dashboard** - Records fee payments by student, period, academic year, receipt number, payment method, paid amount, balance, and status.
+- **Chronicles Dashboard** - Keeps the AGBS tree of days from 1997 onward, with editable milestones and uploaded details.
 - **Graduation Page** - Moves completed students directly to Alumni, because all graduates are alumni.
 - **Alumni Page** - Keeps alumni records together for certificate reference, ministry follow-up, and office history.
 - **Reports Page** - Exports student reports, active student lists, alumni lists, program summaries, grade reports, fee reports, and JSON backups.
@@ -54,6 +55,7 @@ Repository: [Jayasree2020/agbs-office-portal](https://github.com/Jayasree2020/ag
 - Dashboard number cards now work as shortcuts to detailed student records.
 - Grades dashboard added to the main dashboard and Grades page for subject-wise marks, grade results, progress review, Word .docx/CSV import, editing, and CSV export.
 - Fees dashboard added to the main dashboard and Fees page for payment entry, receipt tracking, balances, and CSV export.
+- Chronicles dashboard added for AGBS history, beginning with the 1997 ministry call, 2000 Amazing Grace name, 2013 ministry initiation, 2020 trust registration, and 2021 Serampore/ATA milestones.
 - GitHub repository organized with documentation and deployment notes.
 
 ## Repository Map
