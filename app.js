@@ -9,6 +9,56 @@ const GRADE_RESULTS = ["Pass", "Fail", "Incomplete", "Pending"];
 const FEE_STATUSES = ["Paid", "Partial", "Pending", "Waived"];
 const PAYMENT_METHODS = ["Cash", "Bank Transfer", "UPI", "Online", "Cheque", "Other"];
 const FEE_TYPES = ["Monthly Fee", "Admission Fee", "Examination Fee", "Graduation Fee", "Certificate Fee", "Other"];
+const CHRONICLE_SEED = [
+  {
+    id: "chronicle-1997-call",
+    year: "1997",
+    date: "1997",
+    title: "Initial Ministry Commitment And Call",
+    category: "Calling",
+    body: "Initial ministry commitment and call into the ministry.",
+  },
+  {
+    id: "chronicle-2000-name",
+    year: "2000",
+    date: "2000",
+    title: "Amazing Grace Name Given",
+    category: "Identity",
+    body: "The name Amazing Grace was given.",
+  },
+  {
+    id: "chronicle-2013-initiation",
+    year: "2013",
+    date: "2013",
+    title: "First Initiation Of Amazing Grace Ministry",
+    category: "Ministry",
+    body: "The first initiation of the ministry began for Amazing Grace.",
+  },
+  {
+    id: "chronicle-2020-trust",
+    year: "2020",
+    date: "2020",
+    title: "Amazing Grace Ministries India Trust Registered",
+    category: "Registration",
+    body: "Amazing Grace Ministries India Religious And Charitable Trust was registered.",
+  },
+  {
+    id: "chronicle-2021-serampore",
+    year: "2021",
+    date: "2021",
+    title: "Senate Of Serampore College Affiliation",
+    category: "Affiliation",
+    body: "Senate of Serampore College (University) affiliation was given.",
+  },
+  {
+    id: "chronicle-2021-ata",
+    year: "2021",
+    date: "2021",
+    title: "ATA Candidacy Membership",
+    category: "Accreditation",
+    body: "ATA candidacy membership was given.",
+  },
+];
 
 const PROGRAMS = [
   {
@@ -117,6 +167,7 @@ const NAV_ITEMS = [
   ["admissions", "Admissions"],
   ["grades", "Grades"],
   ["fees", "Fees"],
+  ["chronicles", "Chronicles"],
   ["programs", "Programs & Batches"],
   ["graduation", "Graduation"],
   ["alumni", "Alumni"],
@@ -131,6 +182,7 @@ let filters = { search: "", program: "All", status: "All", batch: "All", languag
 let gradeFilters = { search: "", program: "All", subject: "All", term: "All", result: "All", academicYear: "All" };
 let feeFilters = { search: "", program: "All", status: "All", academicYear: "All" };
 let editingGradeId = null;
+let editingChronicleId = null;
 
 const loginScreen = document.getElementById("login-screen");
 const appShell = document.getElementById("app");
@@ -190,6 +242,7 @@ async function loadStateFromPassword(password) {
     users: DEFAULT_USERS,
     grades: [],
     feePayments: [],
+    chronicles: defaultChronicles(),
     auditLogs: [
       {
         at: new Date().toISOString(),
@@ -211,7 +264,16 @@ function normalizeState(nextState) {
     students: normalizeStudents(nextState.students || []),
     grades: nextState.grades || [],
     feePayments: nextState.feePayments || [],
+    chronicles: normalizeChronicles(nextState.chronicles || defaultChronicles()),
   };
+}
+
+function defaultChronicles() {
+  return CHRONICLE_SEED.map((entry) => ({ ...entry }));
+}
+
+function normalizeChronicles(chronicles) {
+  return [...chronicles].sort((a, b) => String(a.date || a.year).localeCompare(String(b.date || b.year)));
 }
 
 function normalizeStudents(students) {
@@ -338,6 +400,7 @@ function route(viewId) {
     admissions: renderAdmissions,
     grades: renderGrades,
     fees: renderFees,
+    chronicles: renderChronicles,
     programs: renderPrograms,
     graduation: renderGraduation,
     alumni: renderAlumni,
@@ -352,6 +415,7 @@ function renderDashboard() {
   const stats = getStats();
   const gradeStats = getGradeStats();
   const feeStats = getFeeStats();
+  const chronicleStats = getChronicleStats();
   view.innerHTML = `
     <section class="hero-band">
       <div class="hero-copy">
@@ -402,6 +466,20 @@ function renderDashboard() {
       </div>
       <button class="primary" type="button" id="open-fee-dashboard">Open Fee Dashboard</button>
     </section>
+    <section class="card chronicle-dashboard-card">
+      <div>
+        <p class="eyebrow">AGBS Chronicles</p>
+        <h3>Tree Of Days</h3>
+        <p class="muted">Keep the ministry journey from 1997 onward in one editable office history, with uploaded details for each day and milestone.</p>
+      </div>
+      <div class="mini-stat-grid">
+        <div><strong>${chronicleStats.entries}</strong><span>Entries</span></div>
+        <div><strong>${chronicleStats.firstYear}</strong><span>Beginning</span></div>
+        <div><strong>${chronicleStats.latestYear}</strong><span>Latest</span></div>
+        <div><strong>${chronicleStats.categories}</strong><span>Categories</span></div>
+      </div>
+      <button class="primary" type="button" id="open-chronicles-dashboard">Open Chronicles</button>
+    </section>
     <section class="grid two-col" style="margin-top:16px">
       <div class="card">
         <h3>Program Register Summary</h3>
@@ -422,6 +500,7 @@ function renderDashboard() {
   bindDashboardProgramLinks();
   document.getElementById("open-grade-dashboard").addEventListener("click", () => route("grades"));
   document.getElementById("open-fee-dashboard").addEventListener("click", () => route("fees"));
+  document.getElementById("open-chronicles-dashboard").addEventListener("click", () => route("chronicles"));
 }
 
 function renderStudents() {
@@ -618,6 +697,66 @@ function renderFees() {
   bindFeeToolbar();
 }
 
+function renderChronicles() {
+  const editingEntry = editingChronicleId ? state.chronicles.find((entry) => entry.id === editingChronicleId) : null;
+  const stats = getChronicleStats();
+  view.innerHTML = `
+    <section class="grid stats">
+      ${statCard(stats.entries, "Chronicle Entries")}
+      ${statCard(stats.firstYear, "Beginning")}
+      ${statCard(stats.latestYear, "Latest")}
+      ${statCard(stats.categories, "Categories")}
+    </section>
+    <section class="grid two-col" style="margin-top:16px">
+      <form id="chronicle-form" class="card stack">
+        <div>
+          <p class="eyebrow">Tree Of Days</p>
+          <h3>${editingEntry ? "Edit Chronicle Entry" : "Add Chronicle Entry"}</h3>
+        </div>
+        <div class="form-grid">
+          <label>Year<input name="year" value="${escapeHtml(editingEntry?.year || new Date().getFullYear())}" required /></label>
+          <label>Date Or Season<input name="date" placeholder="Example: 2021 or 12 May 2026" value="${escapeHtml(editingEntry?.date || "")}" required /></label>
+          <label class="full">Title<input name="title" placeholder="Chronicle title" value="${escapeHtml(editingEntry?.title || "")}" required /></label>
+          <label>Category<input name="category" placeholder="Calling, Ministry, Affiliation..." value="${escapeHtml(editingEntry?.category || "Ministry")}" /></label>
+          <label>Upload Details<input name="chronicleFile" type="file" accept=".docx,.txt,.csv,.doc,text/plain,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document" /></label>
+          <label class="full">Details<textarea name="body" placeholder="Write or upload the details of this day">${escapeHtml(editingEntry?.body || "")}</textarea></label>
+        </div>
+        <div class="button-row">
+          <button class="primary" type="submit">${editingEntry ? "Update Chronicle" : "Save Chronicle"}</button>
+          ${editingEntry ? `<button class="secondary" type="button" id="cancel-chronicle-edit">Cancel Edit</button>` : ""}
+        </div>
+        <div class="notice">Upload .docx, .txt, or .csv details for each day. For older .doc files, save as .docx first.</div>
+      </form>
+      <div class="card stack">
+        <div>
+          <p class="eyebrow">Starting Milestones</p>
+          <h3>AGBS History Foundation</h3>
+        </div>
+        <div class="notice-list">
+          <div class="notice"><strong>1997:</strong> Initial ministry commitment and call into the ministry.</div>
+          <div class="notice"><strong>2000:</strong> The name Amazing Grace was given.</div>
+          <div class="notice"><strong>2013:</strong> First initiation of Amazing Grace ministry.</div>
+          <div class="notice"><strong>2020:</strong> Amazing Grace Ministries India Religious And Charitable Trust registered.</div>
+          <div class="notice"><strong>2021:</strong> Senate of Serampore affiliation and ATA candidacy membership.</div>
+        </div>
+        <button id="export-chronicles" class="secondary">Export Chronicles CSV</button>
+      </div>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <div class="chronicle-tree">
+        ${chronicleTree()}
+      </div>
+    </section>
+  `;
+  document.getElementById("chronicle-form").addEventListener("submit", saveChronicle);
+  document.getElementById("export-chronicles").addEventListener("click", () => exportChroniclesCsv("agbs-chronicles.csv", state.chronicles));
+  document.getElementById("cancel-chronicle-edit")?.addEventListener("click", () => {
+    editingChronicleId = null;
+    renderChronicles();
+  });
+  bindChronicleActions();
+}
+
 function renderPrograms() {
   const counts = groupBy(state.students, "program");
   view.innerHTML = `
@@ -693,6 +832,7 @@ function renderReports() {
         <button class="secondary" id="export-programs">Export program summary CSV</button>
         <button class="secondary" id="export-all-grades">Export Grades CSV</button>
         <button class="secondary" id="export-all-fees">Export Fees CSV</button>
+        <button class="secondary" id="export-all-chronicles">Export Chronicles CSV</button>
         <div class="notice">Reports include register number, program, batch, language, status, graduation year, and notes.</div>
       </div>
       <div class="card stack">
@@ -718,6 +858,7 @@ function renderReports() {
   document.getElementById("export-programs").addEventListener("click", exportProgramSummary);
   document.getElementById("export-all-grades").addEventListener("click", () => exportGradesCsv("agbs-grade-report.csv", state.grades));
   document.getElementById("export-all-fees").addEventListener("click", () => exportFeesCsv("agbs-fee-payment-report.csv", state.feePayments));
+  document.getElementById("export-all-chronicles").addEventListener("click", () => exportChroniclesCsv("agbs-chronicles.csv", state.chronicles));
   document.getElementById("run-import").addEventListener("click", importCsv);
 }
 
@@ -1093,7 +1234,7 @@ async function importGradeFile() {
     return;
   }
   if (/\.doc$/i.test(file.name)) {
-    status.textContent = "This is an older Word .doc file. Please open it in Word, Save As .docx, then upload again.";
+    status.textContent = "This is an older Word .doc file. Please open it in Word, choose Save As, select Word Document (.docx), then upload the new file.";
     return;
   }
   status.textContent = "Reading grade file...";
@@ -1109,12 +1250,12 @@ async function importGradeFile() {
       alert(`Imported ${result.imported} grade records from ${file.name}.`);
     }
   } catch (error) {
-    status.textContent = `Could not import this file: ${error.message}`;
+    status.textContent = `Could not import this file: ${friendlyImportError(error)}`;
   }
 }
 
 async function readGradeImportFile(file) {
-  if (/\.docx$/i.test(file.name)) {
+  if (/\.docx$/i.test(file.name) || /officedocument\.wordprocessingml\.document/i.test(file.type)) {
     return extractTextFromDocx(file);
   }
   return file.text();
@@ -1138,6 +1279,17 @@ async function extractTextFromDocx(file) {
   }
   const paragraphs = wordNodes(doc, "p");
   return paragraphs.map((paragraph) => textFromWordNode(paragraph)).filter(Boolean).join("\n");
+}
+
+function friendlyImportError(error) {
+  const message = String(error?.message || error || "");
+  if (/Can't find end of central directory|corrupted zip|not a zip|JSZip/i.test(message)) {
+    return "This Word file is not a readable .docx file. Please open it in Word, Save As Word Document (.docx), and upload again.";
+  }
+  if (/first row must include/i.test(message)) {
+    return "The first row must include Register Number or Student Name, plus Subject, Semester, Marks, Max Marks, Grade, and Result.";
+  }
+  return message;
 }
 
 function textFromWordNode(node) {
@@ -1447,6 +1599,116 @@ function feeTable(payments) {
   `;
 }
 
+function getChronicleStats() {
+  const entries = state.chronicles?.length || 0;
+  const years = unique((state.chronicles || []).map((entry) => String(entry.year || entry.date || "").slice(0, 4)).filter(Boolean)).sort();
+  return {
+    entries,
+    firstYear: years[0] || "1997",
+    latestYear: years[years.length - 1] || "2021",
+    categories: unique((state.chronicles || []).map((entry) => entry.category)).length,
+  };
+}
+
+async function saveChronicle(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = new FormData(form);
+  const file = data.get("chronicleFile");
+  let body = String(data.get("body") || "").trim();
+  if (file && file.name) {
+    if (/\.doc$/i.test(file.name)) {
+      alert("Please save the old .doc file as .docx, then upload again.");
+      return;
+    }
+    try {
+      const uploadedText = await readChronicleFile(file);
+      body = [body, uploadedText].filter(Boolean).join("\n\n");
+    } catch (error) {
+      alert(`Could not read the uploaded file: ${friendlyImportError(error)}`);
+      return;
+    }
+  }
+  const entry = {
+    id: editingChronicleId || `chronicle-${Date.now()}`,
+    year: String(data.get("year") || "").trim(),
+    date: String(data.get("date") || "").trim(),
+    title: String(data.get("title") || "").trim(),
+    category: String(data.get("category") || "Ministry").trim(),
+    body,
+    updatedAt: new Date().toISOString(),
+  };
+  if (!entry.year || !entry.date || !entry.title) {
+    alert("Please enter year, date, and title.");
+    return;
+  }
+  const existingIndex = state.chronicles.findIndex((item) => item.id === entry.id);
+  if (existingIndex >= 0) {
+    state.chronicles[existingIndex] = { ...state.chronicles[existingIndex], ...entry };
+    state.chronicles = normalizeChronicles(state.chronicles);
+    saveState(`Updated chronicle ${entry.title}`);
+  } else {
+    state.chronicles.push({ ...entry, createdAt: new Date().toISOString() });
+    state.chronicles = normalizeChronicles(state.chronicles);
+    saveState(`Added chronicle ${entry.title}`);
+  }
+  editingChronicleId = null;
+  renderChronicles();
+}
+
+async function readChronicleFile(file) {
+  if (/\.docx$/i.test(file.name) || /officedocument\.wordprocessingml\.document/i.test(file.type)) {
+    return extractTextFromDocx(file);
+  }
+  return file.text();
+}
+
+function chronicleTree() {
+  const grouped = new Map();
+  normalizeChronicles(state.chronicles || []).forEach((entry) => {
+    const year = String(entry.year || entry.date || "Undated");
+    if (!grouped.has(year)) grouped.set(year, []);
+    grouped.get(year).push(entry);
+  });
+  return [...grouped.entries()].map(([year, entries]) => `
+    <section class="chronicle-year">
+      <div class="chronicle-year-marker">${escapeHtml(year)}</div>
+      <div class="chronicle-entries">
+        ${entries.map((entry) => `
+          <article class="chronicle-entry">
+            <p class="eyebrow">${escapeHtml(entry.category || "Ministry")} / ${escapeHtml(entry.date || entry.year)}</p>
+            <h3>${escapeHtml(toTitleCase(entry.title))}</h3>
+            <p>${escapeHtml(entry.body || "Details can be uploaded or added by the office.")}</p>
+            <div class="button-row">
+              <button class="small-button" type="button" data-edit-chronicle="${escapeHtml(entry.id)}">Edit</button>
+              <button class="small-button danger" type="button" data-delete-chronicle="${escapeHtml(entry.id)}">Delete</button>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  `).join("");
+}
+
+function bindChronicleActions() {
+  document.querySelectorAll("[data-edit-chronicle]").forEach((button) => {
+    button.addEventListener("click", () => {
+      editingChronicleId = button.dataset.editChronicle;
+      renderChronicles();
+    });
+  });
+  document.querySelectorAll("[data-delete-chronicle]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const entry = state.chronicles.find((item) => item.id === button.dataset.deleteChronicle);
+      if (!entry || !confirm(`Delete chronicle entry: ${entry.title}?`)) return;
+      state.chronicles = state.chronicles.filter((item) => item.id !== entry.id);
+      saveState(`Deleted chronicle ${entry.title}`);
+      if (editingChronicleId === entry.id) editingChronicleId = null;
+      renderChronicles();
+    });
+  });
+}
+
 function generateRegisterNumber(name, program, specialization, language, year) {
   const initials = name
     .replace(/[^A-Za-z ]/g, " ")
@@ -1708,6 +1970,13 @@ function exportGradesCsv(filename, rows) {
 
 function exportFeesCsv(filename, rows) {
   const headers = ["studentName", "registerNumber", "program", "specialization", "feeType", "feePeriod", "academicYear", "totalFee", "amountPaid", "balance", "paymentDate", "receiptNumber", "paymentMethod", "status", "notes"];
+  const csv = [headers.join(","), ...rows.map((row) => headers.map((key) => csvCell(row[key])).join(","))].join("\n");
+  downloadText(filename, csv, "text/csv");
+  addAudit(`Exported ${filename}`);
+}
+
+function exportChroniclesCsv(filename, rows) {
+  const headers = ["year", "date", "title", "category", "body"];
   const csv = [headers.join(","), ...rows.map((row) => headers.map((key) => csvCell(row[key])).join(","))].join("\n");
   downloadText(filename, csv, "text/csv");
   addAudit(`Exported ${filename}`);
