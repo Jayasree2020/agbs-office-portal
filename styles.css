@@ -433,7 +433,8 @@ textarea {
 }
 
 .grade-dashboard-card,
-.fee-dashboard-card {
+.fee-dashboard-card,
+.chronicle-dashboard-card {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr) auto;
   gap: 16px;
@@ -774,6 +775,63 @@ tr:hover td {
   font-style: normal;
 }
 
+.chronicle-tree {
+  display: grid;
+  gap: 18px;
+}
+
+.chronicle-year {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 18px;
+  position: relative;
+}
+
+.chronicle-year::before {
+  content: "";
+  position: absolute;
+  left: 44px;
+  top: 42px;
+  bottom: -18px;
+  width: 2px;
+  background: var(--line);
+}
+
+.chronicle-year:last-child::before {
+  display: none;
+}
+
+.chronicle-year-marker {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 90px;
+  height: 42px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--red);
+  font-weight: 700;
+}
+
+.chronicle-entries {
+  display: grid;
+  gap: 12px;
+}
+
+.chronicle-entry {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
+}
+
+.chronicle-entry p {
+  margin: 10px 0 0;
+  color: var(--soft-ink);
+  line-height: 1.5;
+}
+
 @media (max-width: 980px) {
   .login-shell,
   .app,
@@ -806,7 +864,8 @@ tr:hover td {
   }
 
   .grade-dashboard-card,
-  .fee-dashboard-card {
+  .fee-dashboard-card,
+  .chronicle-dashboard-card {
     grid-template-columns: 1fr;
   }
 }
@@ -841,6 +900,15 @@ tr:hover td {
 
   .year-student-grid {
     grid-template-columns: 1fr;
+  }
+
+  .chronicle-year {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .chronicle-year::before {
+    display: none;
   }
 
   .hero-band {
