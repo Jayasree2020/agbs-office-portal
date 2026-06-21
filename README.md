@@ -2,7 +2,7 @@
 
 Private Seminary Office Platform For Amazing Grace Biblical Seminary.
 
-Live app: [agbs-office-portal.vercel.app](https://agbs-office-portal.vercel.app)  
+Live app: [jayasree2020.github.io/agbs-office-portal](https://jayasree2020.github.io/agbs-office-portal/)  
 Repository: [Jayasree2020/agbs-office-portal](https://github.com/Jayasree2020/agbs-office-portal)
 
 > Built for the seminary office to manage admission, register numbers, student records, graduation, and alumni details in one private place.
@@ -79,10 +79,10 @@ Keep Vercel Deployment Protection enabled for private office use.
 
 ## Deployment
 
-This portal is deployed on Vercel from GitHub.
+This portal is deployed from GitHub Pages while the former Vercel project is disabled.
 
 - Build command: none
 - Output directory: project root
-- Live URL: [https://agbs-office-portal.vercel.app](https://agbs-office-portal.vercel.app)
+- Live URL: [https://jayasree2020.github.io/agbs-office-portal/](https://jayasree2020.github.io/agbs-office-portal/)
 
 For long-term production use, replace browser storage with a private cloud database and hosted authentication.
