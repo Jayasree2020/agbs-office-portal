@@ -95,13 +95,17 @@ This document explains, point by point, what has been made so far and what each 
 
 ## Reports And Backup
 
+- Export every portal section and every stored field in one complete CSV archive.
 - Export current filtered student list as CSV.
 - Export active students as CSV.
 - Export alumni as CSV.
 - Export program summary as CSV.
 - Export grade records as CSV.
 - Export fee payment records as CSV.
+- Export chronicles as CSV.
 - Download JSON backup for local safekeeping.
+
+The complete CSV includes portal metadata, students, grades, fee payments, chronicles, programs, handbook references, users and roles, audit logs, and navigation configuration. Arrays and nested values are retained as JSON text inside the CSV.
 
 ## Handbook Reference
 
