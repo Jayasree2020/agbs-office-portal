@@ -195,6 +195,7 @@ const profileContent = document.getElementById("profile-content");
 
 document.getElementById("login-form").addEventListener("submit", handleLogin);
 document.getElementById("logout").addEventListener("click", logout);
+document.getElementById("export-everything-button").addEventListener("click", exportEverythingCsv);
 document.getElementById("backup-button").addEventListener("click", downloadBackup);
 document.getElementById("print-button").addEventListener("click", () => window.print());
 
@@ -826,6 +827,7 @@ function renderReports() {
           <p class="eyebrow">Export</p>
           <h3>Office reports</h3>
         </div>
+        <button class="primary" id="export-everything">Export Literally Everything CSV</button>
         <button class="primary" id="export-filtered">Export current student report CSV</button>
         <button class="secondary" id="export-active">Export active students CSV</button>
         <button class="secondary" id="export-alumni">Export Alumni CSV</button>
@@ -852,6 +854,7 @@ function renderReports() {
       ${statCard(stats.programs, "Programs")}
     </section>
   `;
+  document.getElementById("export-everything").addEventListener("click", exportEverythingCsv);
   document.getElementById("export-filtered").addEventListener("click", () => exportCsv("agbs-student-report.csv", getFilteredStudents()));
   document.getElementById("export-active").addEventListener("click", () => exportCsv("agbs-active-students.csv", state.students.filter((s) => s.status === "Active Student")));
   document.getElementById("export-alumni").addEventListener("click", () => exportCsv("agbs-alumni-graduates.csv", state.students.filter((s) => s.status === "Alumni")));
@@ -1980,6 +1983,81 @@ function exportChroniclesCsv(filename, rows) {
   const csv = [headers.join(","), ...rows.map((row) => headers.map((key) => csvCell(row[key])).join(","))].join("\n");
   downloadText(filename, csv, "text/csv");
   addAudit(`Exported ${filename}`);
+}
+
+function exportEverythingCsv() {
+  const filename = `agbs-complete-portal-export-${new Date().toISOString().slice(0, 10)}.csv`;
+  const csv = buildEverythingCsv();
+  downloadText(filename, `\uFEFF${csv}`, "text/csv;charset=utf-8");
+  addAudit(`Exported complete portal CSV (${filename})`);
+}
+
+function buildEverythingCsv() {
+  const exportedAt = new Date().toISOString();
+  const sections = [
+    ["Portal Metadata", [{
+      id: "agbs-office-portal",
+      seminary: "Amazing Grace Biblical Seminary",
+      motto: "Making Disciples To Make Disciples",
+      exportedAt,
+      liveUrl: "https://jayasree2020.github.io/agbs-office-portal/",
+      storageVersion: STORAGE_KEY,
+      totalStudents: state.students?.length || 0,
+      totalGrades: state.grades?.length || 0,
+      totalFeePayments: state.feePayments?.length || 0,
+      totalChronicles: state.chronicles?.length || 0,
+    }]],
+    ["Students", state.students || []],
+    ["Grades", state.grades || []],
+    ["Fee Payments", state.feePayments || []],
+    ["Chronicles", state.chronicles || []],
+    ["Programs", PROGRAMS],
+    ["Handbook", HANDBOOK],
+    ["Users And Roles", state.users || DEFAULT_USERS],
+    ["Audit Logs", state.auditLogs || []],
+    ["Navigation", NAV_ITEMS.map(([id, label], order) => ({ id, label, order: order + 1 }))],
+  ];
+  const headers = ["section", "recordNumber", "recordId", "recordLabel", "field", "value", "valueType"];
+  const rows = [headers.join(",")];
+  sections.forEach(([section, records]) => {
+    if (!records.length) {
+      rows.push([section, 0, `${section}-empty`, "No Records", "", "", "empty-section"].map(csvCell).join(","));
+      return;
+    }
+    records.forEach((record, index) => {
+      const recordId = record.id || record.registerNumber || record.code || `${section}-${index + 1}`;
+      const recordLabel = record.name || record.studentName || record.title || record.label || record.action || recordId;
+      const entries = Object.entries(record);
+      if (!entries.length) {
+        rows.push([section, index + 1, recordId, recordLabel, "", "", "empty"].map(csvCell).join(","));
+        return;
+      }
+      entries.forEach(([field, value]) => {
+        rows.push([
+          section,
+          index + 1,
+          recordId,
+          recordLabel,
+          field,
+          serializeCsvValue(value),
+          csvValueType(value),
+        ].map(csvCell).join(","));
+      });
+    });
+  });
+  return rows.join("\n");
+}
+
+function serializeCsvValue(value) {
+  if (value == null) return "";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+}
+
+function csvValueType(value) {
+  if (value == null) return "null";
+  if (Array.isArray(value)) return "array";
+  return typeof value;
 }
 
 function formatCurrency(value) {
