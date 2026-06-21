@@ -20,7 +20,7 @@ Repository: [Jayasree2020/agbs-office-portal](https://github.com/Jayasree2020/ag
 - **Chronicles Dashboard** - Keeps the AGBS tree of days from 1997 onward, with editable milestones and uploaded details.
 - **Graduation Page** - Moves completed students directly to Alumni, because all graduates are alumni.
 - **Alumni Page** - Keeps alumni records together for certificate reference, ministry follow-up, and office history.
-- **Reports Page** - Exports student reports, active student lists, alumni lists, program summaries, grade reports, fee reports, and JSON backups.
+- **Reports Page** - Exports student reports, active student lists, alumni lists, program summaries, grade reports, fee reports, chronicles, JSON backups, and one complete CSV containing every portal section and field.
 - **Import Tool** - Accepts CSV records so future lists can be added without rewriting the app.
 - **Programs Page** - Documents program duration and departments: B.Th, M.Div, M.Th, Dip.BS, and DWM.
 - **Handbook Page** - Keeps key office reference points from the Student Handbook: admissions, documents, attendance, fees, exams, conduct, and contact.
@@ -56,6 +56,7 @@ Repository: [Jayasree2020/agbs-office-portal](https://github.com/Jayasree2020/ag
 - Grades dashboard added to the main dashboard and Grades page for subject-wise marks, grade results, progress review, Word .docx/CSV import, editing, and CSV export.
 - Fees dashboard added to the main dashboard and Fees page for payment entry, receipt tracking, balances, and CSV export.
 - Chronicles dashboard added for AGBS history, beginning with the 1997 ministry call, 2000 Amazing Grace name, 2013 ministry initiation, 2020 trust registration, and 2021 Serampore/ATA milestones.
+- One-click complete CSV export added for students, grades, fees, chronicles, programs, handbook references, users/roles, audit logs, navigation, and portal metadata.
 - GitHub repository organized with documentation and deployment notes.
 
 ## Repository Map
